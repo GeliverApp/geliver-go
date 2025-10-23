@@ -24,13 +24,13 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 Requires Go 1.21+.
 
 ```bash
-go get github.com/GeliverApp/geliver-go-sdk@latest
+go get github.com/GeliverApp/geliver-go@latest
 ```
 
 İçe aktarma:
 
 ```go
-import g "github.com/GeliverApp/geliver-go-sdk/pkg/geliver"
+import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 ```
 
 ---
@@ -42,7 +42,8 @@ package main
 
 import (
     "context"
-    g "github.com/GeliverApp/geliver-go-sdk/pkg/geliver"
+    "os"
+    g "github.com/GeliverApp/geliver-go/pkg/geliver"
 )
 
 func example(ctx context.Context) error {
@@ -60,10 +61,21 @@ func example(ctx context.Context) error {
         Zip: "34020",
     })
 
+    // Paket boyutları ve ağırlık
+    length, width, height, weight := 10.0, 10.0, 10.0, 1.0
+    distanceUnit := "cm"
+    massUnit := "kg"
+
     s, _ := c.CreateShipmentWithRecipientAddress(ctx, g.CreateShipmentWithRecipientAddress{
         CreateShipmentRequestBase: g.CreateShipmentRequestBase{
             SourceCode:     "API",
             SenderAddressID: sender.ID,
+            Length:         &length,
+            Width:          &width,
+            Height:         &height,
+            DistanceUnit:   &distanceUnit,
+            Weight:         &weight,
+            MassUnit:       &massUnit,
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
@@ -76,6 +88,16 @@ func example(ctx context.Context) error {
             Zip: "34020",
         },
     })
+
+    // Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
+    if s.LabelURL != "" {
+        b, _ := c.DownloadShipmentLabel(ctx, s.ID)
+        _ = os.WriteFile("label_pre.pdf", b, 0644)
+    }
+    if s.ResponsiveLabelURL != "" {
+        html, _ := c.DownloadResponsiveURL(ctx, s.ResponsiveLabelURL)
+        _ = os.WriteFile("label_pre.html", []byte(html), 0644)
+    }
 
     _ = s
     return nil
@@ -95,10 +117,19 @@ recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
 })
 
 // Ardından recipientAddressID ile gönderi oluşturun (typed istek)
+length2, width2, height2, weight2 := 10.0, 10.0, 10.0, 1.0
+distanceUnit2 := "cm"
+massUnit2 := "kg"
 req := g.CreateShipmentWithRecipientID{
     CreateShipmentRequestBase: g.CreateShipmentRequestBase{
         SourceCode: "API",
         SenderAddressID: sender.ID,
+        Length:       &length2,
+        Width:        &width2,
+        Height:       &height2,
+        DistanceUnit: &distanceUnit2,
+        Weight:       &weight2,
+        MassUnit:     &massUnit2,
         Test: ptrb(true),
     },
     RecipientAddressID: recipient.ID,

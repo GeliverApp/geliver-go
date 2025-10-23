@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/GeliverApp/sdk-go/pkg/geliver"
+	"github.com/GeliverApp/geliver-go/pkg/geliver"
 )
 
 func ptrs(s string) *string { return &s }
@@ -45,6 +45,16 @@ func main() {
 	if err != nil || s == nil {
 		fmt.Println("create shipment error", err)
 		return
+	}
+
+	// Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
+	if s.LabelURL != "" {
+		b, _ := c.DownloadShipmentLabel(ctx, s.ID)
+		_ = os.WriteFile("label_pre.pdf", b, 0644)
+	}
+	if s.ResponsiveLabelURL != "" {
+		html, _ := c.DownloadResponsiveURL(ctx, s.ResponsiveLabelURL)
+		_ = os.WriteFile("label_pre.html", []byte(html), 0644)
 	}
 
 	// Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
