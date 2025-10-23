@@ -1,45 +1,24 @@
-# Go build artifacts
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Go
+# Binaries and build outputs
+bin/
+build/
+release/
+debug/
 
-# Test binaries and coverage outputs
+# Test and coverage artifacts
 *.test
 *.out
-coverage/
 coverage.out
-
-# Logs and profiling data
-*.log
-*.prof
-*.pprof
 profile.out
-cpu.prof
-mem.prof
 
-# Local caches and tooling
+# Go module / cache
 .gocache/
+.cache/
+
+# OS / editor
+.DS_Store
 .idea/
 .vscode/
 
-# OS files
-.DS_Store
-
-# Editor backups
-*~
-*.swp
-*.swo
-
-# Environment files (if used)
+# Env
 .env
-.env.*
-
-# Dependency directory (uncomment to ignore if you vendor)
-# vendor/
-
-# Build output directories (opt-in)
-# bin/
-# dist/
-# build/
