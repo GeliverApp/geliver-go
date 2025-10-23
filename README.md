@@ -55,6 +55,7 @@ import (
 func example(ctx context.Context) error {
     c := g.NewClient("YOUR_TOKEN")
 
+    // Gönderici adresi oluşturulur. Her gönderici adresi için tek seferlik yapılır. Oluşan gönderici adres ID'sini saklayıp tekrar kullanılır.
     sender, _ := c.CreateSenderAddress(ctx, g.CreateAddressRequest{
         Name: "ACME",
         Email: "ops@acme.test",
@@ -72,6 +73,7 @@ func example(ctx context.Context) error {
     distanceUnit := "cm"
     massUnit := "kg"
 
+    // Alıcı adres bilgileri ile gönderi oluşturulur.
     s, _ := c.CreateShipmentWithRecipientAddress(ctx, g.CreateShipmentWithRecipientAddress{
         CreateShipmentRequestBase: g.CreateShipmentRequestBase{
             SourceCode:     "API",
@@ -115,7 +117,7 @@ func example(ctx context.Context) error {
 ## Alıcı ID'si ile oluşturma (recipientAddressID)
 
 ```go
-// Alıcı adresini sunucuda oluşturun ve ID alın
+// Alıcı adresini sunucuda oluşturun ve IDyi alın
 recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
     Name: "John Doe", Email: "john@example.com",
     Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
