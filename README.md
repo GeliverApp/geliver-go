@@ -14,9 +14,7 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 - Türkçe Akış (TR)
 - Örnekler
 - Coğrafi, Sağlayıcı, Şablonlar
-- Notlar (TR)
-
----
+- Notlar ve İpuçları (TR)
 
 ## Kurulum
 
@@ -32,8 +30,6 @@ go get github.com/GeliverApp/geliver-go@latest
 import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 ```
 
----
-
 ## Akış (TR)
 
 1. Geliver Kargo API tokenı alın: https://app.geliver.io/apitokens
@@ -44,8 +40,6 @@ import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 6. Test ortamında her `GET /shipments` isteği kargo durumunu bir adım ilerletir; prod’da webhookları kurun.
 7. Etiketleri indirin (`DownloadShipmentLabel`).
 8. İade gerekiyorsa `CreateReturnShipment` fonksiyonunu kullanın.
-
----
 
 ## Hızlı Başlangıç
 
@@ -118,7 +112,7 @@ func example(ctx context.Context) error {
 
 > Alternatif: Uygun olduğunda sunucuda kayıtlı `recipientAddressID` alanını kullanabilirsiniz.
 
-## Alıcıyı ID ile oluşturma (recipientAddressID)
+## Alıcı ID'si ile oluşturma (recipientAddressID)
 
 ```go
 // Alıcı adresini sunucuda oluşturun ve ID alın
@@ -150,15 +144,11 @@ s2, _ := c.CreateShipmentWithRecipientID(ctx, req)
 _ = s2
 ```
 
----
-
 ## Örnekler
 
 - Full flow: `examples/fullflow`
 - Minimal webhook handler: `examples/webhook_server`
 - Modeller: `pkg/geliver/models.go` (OpenAPI’den üretilmiştir)
-
----
 
 ## Coğrafi, Sağlayıcı, Şablonlar
 
@@ -187,7 +177,7 @@ list, _ := c.ListProviderAccounts(ctx)
 _, _ = c.DeleteProviderAccount(ctx, acc.ID, ptrb(true))
 ```
 
-Kargo şablonları:
+## Kargo şablonları:
 
 ```go
 tpl, _ := c.CreateParcelTemplate(ctx, g.CreateParcelTemplateRequest{
@@ -205,7 +195,7 @@ _, _ = c.DeleteParcelTemplate(ctx, tpl.ID)
 
 ---
 
-## Notlar (TR)
+## Notlar ve İpuçları (TR)
 
 - API bazı ondalık değerleri string olarak döndürebilir; Go tarafında `json:",string"` ile tip dönüşümü yapılır.
 - Teklif beklerken ~1 sn aralık idealdir.
