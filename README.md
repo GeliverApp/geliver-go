@@ -1,10 +1,9 @@
-
 # Geliver Go SDK
 
 Geliver Go SDK — Geliver Kargo Pazaryeri (Shipping Marketplace) API için resmi Golang istemcisi.
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
 
-• Dokümantasyon (TR/EN): https://docs.geliver.com
+• Dokümantasyon (TR/EN): https://docs.geliver.io
 
 ---
 
@@ -32,6 +31,19 @@ go get github.com/GeliverApp/geliver-go@latest
 ```go
 import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 ```
+
+---
+
+## Akış (TR)
+
+1. Geliver Kargo API tokenı alın: https://app.geliver.io/apitokens
+2. Gönderici adresi oluşturun (`CreateSenderAddress`).
+3. Gönderi oluşturun; alıcıyı ID ile ya da adres nesnesi ile verin (`CreateShipmentTyped`).
+4. Teklifleri bekleyip kabul edin (`AcceptOffer`).
+5. Barkod, takip numarası ve etiket URL’leri Transaction içindeki Shipment’tan alın.
+6. Test ortamında her `GET /shipments` isteği kargo durumunu bir adım ilerletir; prod’da webhookları kurun.
+7. Etiketleri indirin (`DownloadShipmentLabel`).
+8. İade gerekiyorsa `CreateReturnShipment` fonksiyonunu kullanın.
 
 ---
 
@@ -137,19 +149,6 @@ req := g.CreateShipmentWithRecipientID{
 s2, _ := c.CreateShipmentWithRecipientID(ctx, req)
 _ = s2
 ```
-
----
-
-## Türkçe Akış (TR)
-
-1. Geliver Kargo API tokenı alın: https://app.geliver.io/apitokens
-2. Gönderici adresi oluşturun (`CreateSenderAddress`).
-3. Gönderi oluşturun; alıcıyı ID ile ya da adres nesnesi ile verin (`CreateShipmentTyped`).
-4. Teklifleri bekleyip kabul edin (`AcceptOffer`).
-5. Barkod, takip numarası ve etiket URL’leri Transaction içindeki Shipment’tan alın.
-6. Test ortamında her `GET /shipments` isteği kargo durumunu bir adım ilerletir; prod’da webhookları kurun.
-7. Etiketleri indirin (`DownloadShipmentLabel`).
-8. İade gerekiyorsa `CreateReturnShipment` fonksiyonunu kullanın.
 
 ---
 
