@@ -48,12 +48,15 @@ type UpdatePackageRequest struct {
     MassUnit     *string  `json:"massUnit,omitempty"`
 }
 
+// ReturnShipmentRequest represents a return creation body.
+// Note: SenderAddress is optional; backend defaults it to the original shipment's recipient address
+// unless overridden here.
 type ReturnShipmentRequest struct {
-    IsReturn           bool    `json:"isReturn"`
-    WillAccept         bool    `json:"willAccept"`
-    ProviderServiceCode string `json:"providerServiceCode"`
-    Count              int     `json:"count"`
-    SenderAddress      Address `json:"senderAddress"`
+    IsReturn           bool     `json:"isReturn"`
+    WillAccept         bool     `json:"willAccept"`
+    ProviderServiceCode *string `json:"providerServiceCode,omitempty"`
+    Count              int      `json:"count"`
+    SenderAddress      *Address `json:"senderAddress,omitempty"`
 }
 
 type CreateParcelTemplateRequest struct {

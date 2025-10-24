@@ -114,6 +114,25 @@ func example(ctx context.Context) error {
 
 > Alternatif: Uygun olduğunda sunucuda kayıtlı `recipientAddressID` alanını kullanabilirsiniz.
 
+---
+
+## İade Gönderisi Oluşturun
+
+```go
+provider := "SURAT_STANDART"
+retReq := g.ReturnShipmentRequest{
+    WillAccept:         true,
+    ProviderServiceCode: &provider,
+    Count:              1,
+}
+ret, _ := c.CreateReturnShipment(ctx, s.ID, retReq)
+_ = ret
+```
+
+Not:
+- `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
+- `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
+
 ## Alıcı ID'si ile oluşturma (recipientAddressID)
 
 ```go
