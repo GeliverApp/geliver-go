@@ -36,11 +36,12 @@ func main() {
 	// Inline alıcı adresi (kayıt oluşturmadan)
 	recipientPhone := "+905051234568"
 	length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
-	req := geliver.CreateShipmentWithRecipientAddress{
-		CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
-			SourceCode: "API", SenderAddressID: sender.ID,
-			Length: &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(true),
-		},
+    req := geliver.CreateShipmentWithRecipientAddress{
+        CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
+            SenderAddressID: sender.ID,
+            Length: &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(true),
+            Order: &geliver.OrderRequest{ OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL") },
+        },
 		RecipientAddress: geliver.Address{
 			Name: "John Doe", Email: "john@example.com", Phone: recipientPhone,
 			Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",

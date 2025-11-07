@@ -76,7 +76,6 @@ func example(ctx context.Context) error {
     // Alıcı adres bilgileri ile gönderi oluşturulur.
     s, _ := c.CreateShipmentWithRecipientAddress(ctx, g.CreateShipmentWithRecipientAddress{
         CreateShipmentRequestBase: g.CreateShipmentRequestBase{
-            SourceCode:     "API",
             SenderAddressID: sender.ID,
             Length:         &length,
             Width:          &width,
@@ -85,6 +84,7 @@ func example(ctx context.Context) error {
             Weight:         &weight,
             MassUnit:       &massUnit,
             Test: ptrb(true),
+            Order:          &g.OrderRequest{ OrderNumber: "ABC12333322", SourceIdentifier: &[]string{"https://magazaadresiniz.com"}[0], TotalAmount: &[]string{"150"}[0], TotalAmountCurrency: &[]string{"TL"}[0] },
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
@@ -143,7 +143,6 @@ distanceUnit2 := "cm"
 massUnit2 := "kg"
 req := g.CreateShipmentWithRecipientID{
     CreateShipmentRequestBase: g.CreateShipmentRequestBase{
-        SourceCode: "API",
         SenderAddressID: sender.ID,
         Length:       &length2,
         Width:        &width2,
@@ -214,7 +213,6 @@ _, _ = c.DeleteParcelTemplate(ctx, tpl.ID)
 
 - İstek tarafında `length`, `width`, `height`, `weight` alanları `*string` (ör. `"10.0"`) olarak gönderilmelidir; `json:",string"` kullanmayın.
 - API bazı ondalık değerleri response tarafında string olarak döndürebilir; gerekirse modellerde uygun tiplere map edilir.
-- Teklif beklerken ~1 sn aralık idealdir.
 - Test ortamında her `GET /shipments` çağrısı durumu bir adım ilerletir; prod için webhookları kurun.
 - Test modunu yalnızca denemeler için `Test: ptrb(true)` ile açın; canlı gönderilerde bu alanı set etmeyin.
 - Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.

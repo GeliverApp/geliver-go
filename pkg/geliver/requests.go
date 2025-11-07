@@ -17,7 +17,6 @@ type CreateAddressRequest struct {
 }
 
 type CreateShipmentRequestBase struct {
-    SourceCode          string  `json:"sourceCode"`
     SenderAddressID     string  `json:"senderAddressID"`
     Length              *string `json:"length,omitempty"`
     Width               *string `json:"width,omitempty"`
@@ -27,6 +26,7 @@ type CreateShipmentRequestBase struct {
     MassUnit            *string `json:"massUnit,omitempty"`
     ProviderServiceCode *string `json:"providerServiceCode,omitempty"`
     Test                *bool   `json:"test,omitempty"`
+    Order               *OrderRequest `json:"order,omitempty"`
 }
 
 type CreateShipmentWithRecipientID struct {
@@ -46,6 +46,15 @@ type UpdatePackageRequest struct {
     DistanceUnit *string `json:"distanceUnit,omitempty"`
     Weight       *string `json:"weight,omitempty"`
     MassUnit     *string `json:"massUnit,omitempty"`
+}
+
+// OrderRequest optional order metadata. If provided, OrderNumber is required, others are optional.
+type OrderRequest struct {
+    SourceCode          *string `json:"sourceCode,omitempty"`
+    SourceIdentifier    *string `json:"sourceIdentifier,omitempty"`
+    OrderNumber         string  `json:"orderNumber"`
+    TotalAmount         *string `json:"totalAmount,omitempty"`
+    TotalAmountCurrency *string `json:"totalAmountCurrency,omitempty"`
 }
 
 // ReturnShipmentRequest represents a return creation body.

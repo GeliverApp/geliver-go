@@ -7,6 +7,7 @@ import (
     "io"
     "net/http"
     "net/url"
+    "encoding/json"
     "time"
 )
 
@@ -35,15 +36,33 @@ type ListParams struct {
 }
 
 func (c *Client) CreateShipment(ctx context.Context, body map[string]any) (*Shipment, error) {
+    if body == nil { body = map[string]any{} }
+    if ord, ok := body["order"].(map[string]any); ok {
+        if _, ok2 := ord["sourceCode"]; !ok2 || ord["sourceCode"] == "" {
+            ord["sourceCode"] = "API"
+            body["order"] = ord
+        }
+    }
     var out Shipment
     if err := c.do(ctx, "POST", "/shipments", nil, body, &out); err != nil { return nil, err }
     return &out, nil
 }
 
 func (c *Client) CreateShipmentTyped(ctx context.Context, body any) (*Shipment, error) {
-    var out Shipment
-    if err := c.do(ctx, "POST", "/shipments", nil, body, &out); err != nil { return nil, err }
-    return &out, nil
+    // normalize to map and enforce default sourceCode
+    b, _ := json.Marshal(body)
+    var m map[string]any
+    _ = json.Unmarshal(b, &m)
+    if m == nil { m = map[string]any{} }
+    if ov, ok := m["order"]; ok {
+        if ord, ok2 := ov.(map[string]any); ok2 {
+            if _, ok3 := ord["sourceCode"]; !ok3 || ord["sourceCode"] == "" {
+                ord["sourceCode"] = "API"
+                m["order"] = ord
+            }
+        }
+    }
+    return c.CreateShipment(ctx, m)
 }
 
 // CreateShipmentWithRecipientID creates a shipment using a recipient address ID (typed request).
