@@ -12,7 +12,7 @@ type Address struct {
   CountryName string `json:"countryName,omitempty"`
   CreatedAt string `json:"createdAt,omitempty"`
   District *District `json:"district,omitempty"`
-  DistrictID int `json:"districtID,omitempty,string"`
+  DistrictID int `json:"districtID,omitempty"`
   DistrictName string `json:"districtName,omitempty"`
   Email string `json:"email,omitempty"`
   ID string `json:"id,omitempty"`
@@ -52,7 +52,7 @@ type DbStringArray struct {
 type District struct {
   CityCode string `json:"cityCode,omitempty"`
   CountryCode string `json:"countryCode,omitempty"`
-  DistrictID int `json:"districtID,omitempty,string"`
+  DistrictID int `json:"districtID,omitempty"`
   // Model
   Name string `json:"name,omitempty"`
   RegionCode string `json:"regionCode,omitempty"`
@@ -73,7 +73,7 @@ type Item struct {
   MaxDeliveryTime string `json:"maxDeliveryTime,omitempty"`
   MaxShipTime string `json:"maxShipTime,omitempty"`
   Owner string `json:"owner,omitempty"`
-  Quantity int `json:"quantity,omitempty,string"`
+  Quantity int `json:"quantity,omitempty"`
   Sku string `json:"sku,omitempty"`
   Test bool `json:"test,omitempty"`
   Title string `json:"title,omitempty"`
@@ -119,14 +119,14 @@ type Offer struct {
   MaxEstimatedTime *Duration `json:"maxEstimatedTime,omitempty"`
   MinEstimatedTime *Duration `json:"minEstimatedTime,omitempty"`
   Owner string `json:"owner,omitempty"`
-  PredictedDeliveryTime float64 `json:"predictedDeliveryTime,omitempty,string"`
+  PredictedDeliveryTime float64 `json:"predictedDeliveryTime,omitempty"`
   ProviderAccountID string `json:"providerAccountID,omitempty"`
   ProviderAccountName string `json:"providerAccountName,omitempty"`
   ProviderAccountOwnerType string `json:"providerAccountOwnerType,omitempty"`
   ProviderCode string `json:"providerCode,omitempty"`
   ProviderServiceCode string `json:"providerServiceCode,omitempty"`
   ProviderTotalAmount string `json:"providerTotalAmount,omitempty"`
-  Rating float64 `json:"rating,omitempty,string"`
+  Rating float64 `json:"rating,omitempty"`
   ScheduleDate string `json:"scheduleDate,omitempty"`
   ShipmentTime string `json:"shipmentTime,omitempty"`
   Test bool `json:"test,omitempty"`
@@ -148,13 +148,13 @@ type OfferList struct {
   Owner string `json:"owner,omitempty"`
   ParcelIDs []string `json:"parcelIDs,omitempty"`
   ParcelTemplateID string `json:"parcelTemplateID,omitempty"`
-  PercentageCompleted float64 `json:"percentageCompleted,omitempty,string"`
+  PercentageCompleted float64 `json:"percentageCompleted,omitempty"`
   ProviderAccountIDs []string `json:"providerAccountIDs,omitempty"`
   ProviderCodes []string `json:"providerCodes,omitempty"`
   ProviderServiceCodes []string `json:"providerServiceCodes,omitempty"`
   Test bool `json:"test,omitempty"`
-  TotalOffersCompleted int `json:"totalOffersCompleted,omitempty,string"`
-  TotalOffersRequested int `json:"totalOffersRequested,omitempty,string"`
+  TotalOffersCompleted int `json:"totalOffersCompleted,omitempty"`
+  TotalOffersRequested int `json:"totalOffersRequested,omitempty"`
   UpdatedAt string `json:"updatedAt,omitempty"`
   Weight string `json:"weight,omitempty"`
   Width string `json:"width,omitempty"`
@@ -318,7 +318,7 @@ type Shipment struct {
   OldWeight string `json:"oldWeight,omitempty"`
   Order *Order `json:"order,omitempty"`
   OrderID string `json:"orderID,omitempty"`
-  OrganizationShipmentID int `json:"organizationShipmentID,omitempty,string"`
+  OrganizationShipmentID int `json:"organizationShipmentID,omitempty"`
   Owner string `json:"owner,omitempty"`
   PackageAcceptedAt string `json:"packageAcceptedAt,omitempty"`
   // Instead of setting parcel size manually, you can set this to a predefined Parcel Template
@@ -380,8 +380,8 @@ type Tracking struct {
   CreatedAt string `json:"createdAt,omitempty"`
   Hash string `json:"hash,omitempty"`
   ID string `json:"id,omitempty"`
-  LocationLat float64 `json:"locationLat,omitempty,string"`
-  LocationLng float64 `json:"locationLng,omitempty,string"`
+  LocationLat float64 `json:"locationLat,omitempty"`
+  LocationLng float64 `json:"locationLng,omitempty"`
   LocationName string `json:"locationName,omitempty"`
   Owner string `json:"owner,omitempty"`
   StatusDate string `json:"statusDate,omitempty"`

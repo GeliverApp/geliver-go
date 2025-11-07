@@ -38,7 +38,7 @@ import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 4. Teklifleri bekleyip kabul edin (`AcceptOffer`).
 5. Barkod, takip numarası ve etiket URL’leri Transaction içindeki Shipment’tan alın.
 6. Test ortamında her `GET /shipments` isteği kargo durumunu bir adım ilerletir; prod’da webhookları kurun.
-7. Etiketleri indirin (`DownloadShipmentLabel`).
+7. Etiketleri indirin (teklif kabulünden sonra Transaction içindeki URL'lerden indirin).
 8. İade gerekiyorsa `CreateReturnShipment` fonksiyonunu kullanın.
 
 ## Hızlı Başlangıç
@@ -68,8 +68,8 @@ func example(ctx context.Context) error {
         Zip: "34020",
     })
 
-    // Paket boyutları ve ağırlık
-    length, width, height, weight := 10.0, 10.0, 10.0, 1.0
+    // Paket boyutları ve ağırlık (istek alanları string pointer olmalıdır)
+    length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
     distanceUnit := "cm"
     massUnit := "kg"
 
@@ -84,6 +84,7 @@ func example(ctx context.Context) error {
             DistanceUnit:   &distanceUnit,
             Weight:         &weight,
             MassUnit:       &massUnit,
+            Test: ptrb(true),
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
@@ -97,15 +98,7 @@ func example(ctx context.Context) error {
         },
     })
 
-    // Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
-    if s.LabelURL != "" {
-        b, _ := c.DownloadShipmentLabel(ctx, s.ID)
-        _ = os.WriteFile("label_pre.pdf", b, 0644)
-    }
-    if s.ResponsiveLabelURL != "" {
-        html, _ := c.DownloadResponsiveURL(ctx, s.ResponsiveLabelURL)
-        _ = os.WriteFile("label_pre.html", []byte(html), 0644)
-    }
+    // Etiketler teklif kabulünden (Transaction) sonra üretilir; kabulün ardından URL'lerden indirebilirsiniz de. URL'lere her shipment nesnesinin içinden ulaşılır.
 
     _ = s
     return nil
@@ -130,6 +123,7 @@ _ = ret
 ```
 
 Not:
+
 - `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
 - `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
 
@@ -144,7 +138,7 @@ recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
 })
 
 // Ardından recipientAddressID ile gönderi oluşturun (typed istek)
-length2, width2, height2, weight2 := 10.0, 10.0, 10.0, 1.0
+length2, width2, height2, weight2 := "10.0", "10.0", "10.0", "1.0"
 distanceUnit2 := "cm"
 massUnit2 := "kg"
 req := g.CreateShipmentWithRecipientID{
@@ -218,9 +212,12 @@ _, _ = c.DeleteParcelTemplate(ctx, tpl.ID)
 
 ## Notlar ve İpuçları (TR)
 
-- API bazı ondalık değerleri string olarak döndürebilir; Go tarafında `json:",string"` ile tip dönüşümü yapılır.
+- İstek tarafında `length`, `width`, `height`, `weight` alanları `*string` (ör. `"10.0"`) olarak gönderilmelidir; `json:",string"` kullanmayın.
+- API bazı ondalık değerleri response tarafında string olarak döndürebilir; gerekirse modellerde uygun tiplere map edilir.
 - Teklif beklerken ~1 sn aralık idealdir.
 - Test ortamında her `GET /shipments` çağrısı durumu bir adım ilerletir; prod için webhookları kurun.
+- Test modunu yalnızca denemeler için `Test: ptrb(true)` ile açın; canlı gönderilerde bu alanı set etmeyin.
+- Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.
 - İlçe seçimi için `districtID` tercih edilir; `districtName` her zaman güvenilir olmayabilir.
 - Şehir/ilçe verileri için API’yi kullanın:
 
