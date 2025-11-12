@@ -22,8 +22,8 @@ func main() {
 	ctx := context.Background()
 	senderPhone := "+905051234567"
 	sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
-		Name: "ACME Inc.", Email: "ops@acme.test", Phone: &senderPhone,
-		Address1: "Street 1", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
+		Name: "Şirketim A.Ş", Email: "ops@sirketim.net", Phone: &senderPhone,
+		Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
 		DistrictName: "Esenyurt", Zip: "34020",
 	})
 
@@ -36,15 +36,15 @@ func main() {
 	// Inline alıcı adresi (kayıt oluşturmadan)
 	recipientPhone := "+905051234568"
 	length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
-    req := geliver.CreateShipmentWithRecipientAddress{
-        CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
-            SenderAddressID: sender.ID,
-            Length: &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(true),
-            Order: &geliver.OrderRequest{ OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL") },
-        },
+	req := geliver.CreateShipmentWithRecipientAddress{
+		CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
+			SenderAddressID: sender.ID,
+			Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(false),
+			Order: &geliver.OrderRequest{OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL")},
+		},
 		RecipientAddress: geliver.Address{
-			Name: "John Doe", Email: "john@example.com", Phone: recipientPhone,
-			Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
+			Name: "Ahmet Mehmet", Email: "ahmetmehmet@ornek.com", Phone: recipientPhone,
+			Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
 			DistrictName: "Esenyurt", Zip: "34020",
 		},
 	}
@@ -81,29 +81,42 @@ func main() {
 
 	var trx *geliver.Transaction
 	if offers.Cheapest != nil {
-		trx, _ = c.AcceptOffer(ctx, offers.Cheapest.ID)
+		trx, err = c.AcceptOffer(ctx, offers.Cheapest.ID)
+		if err != nil {
+			if apiErr, ok := err.(*geliver.APIError); ok {
+				fmt.Println("accept offer API error:", apiErr.Status, apiErr.Code, apiErr.Body)
+			} else {
+				fmt.Println("accept offer error:", err)
+			}
+			return
+		}
+	} else {
+		fmt.Println("No cheapest offer available")
+		return
 	}
 
-	if trx != nil && trx.Shipment != nil && trx.Shipment.LabelURL != "" {
+	if trx.Shipment != nil && trx.Shipment.LabelURL != "" {
 		b, _ := c.DownloadURL(ctx, trx.Shipment.LabelURL)
 		_ = os.WriteFile("label.pdf", b, 0644)
 	}
-	if trx != nil && trx.Shipment != nil && trx.Shipment.ResponsiveLabelURL != "" {
+	if trx.Shipment != nil && trx.Shipment.ResponsiveLabelURL != "" {
 		html, _ := c.DownloadResponsiveURL(ctx, trx.Shipment.ResponsiveLabelURL)
 		_ = os.WriteFile("label.html", []byte(html), 0644)
 	}
 
-	if trx.Shipment.Barcode != "" {
-		fmt.Println("barcode:", trx.Shipment.Barcode)
-	}
-	if trx.Shipment.TrackingNumber != "" {
-		fmt.Println("tracking number:", trx.Shipment.TrackingNumber)
-	}
-	if trx.Shipment.LabelURL != "" {
-		fmt.Println("label:", trx.Shipment.LabelURL)
-	}
-	if trx.Shipment.TrackingURL != "" {
-		fmt.Println("tracking:", trx.Shipment.TrackingURL)
+	if trx.Shipment != nil {
+		if trx.Shipment.Barcode != "" {
+			fmt.Println("barcode:", trx.Shipment.Barcode)
+		}
+		if trx.Shipment.TrackingNumber != "" {
+			fmt.Println("tracking number:", trx.Shipment.TrackingNumber)
+		}
+		if trx.Shipment.LabelURL != "" {
+			fmt.Println("label:", trx.Shipment.LabelURL)
+		}
+		if trx.Shipment.TrackingURL != "" {
+			fmt.Println("tracking:", trx.Shipment.TrackingURL)
+		}
 	}
 
 	// Test gönderilerinde her GET /shipments isteği kargo durumunu bir adım ilerletir; prod'da webhook önerilir.
