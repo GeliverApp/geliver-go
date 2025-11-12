@@ -39,7 +39,7 @@ func main() {
 	req := geliver.CreateShipmentWithRecipientAddress{
 		CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
 			SenderAddressID: sender.ID,
-			Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(false),
+			Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(true),
 			Order: &geliver.OrderRequest{OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL")},
 		},
 		RecipientAddress: geliver.Address{
