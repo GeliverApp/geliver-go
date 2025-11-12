@@ -1,19 +1,19 @@
 package geliver
 
 type CreateAddressRequest struct {
-	Name               string  `json:"name"`
-	Email              string  `json:"email"`
-	Phone              *string `json:"phone,omitempty"`
-	Address1           string  `json:"address1"`
-	Address2           *string `json:"address2,omitempty"`
-	CountryCode        string  `json:"countryCode"`
-	CityName           string  `json:"cityName"`
-	CityCode           string  `json:"cityCode"`
-	DistrictName       string  `json:"districtName"`
-	DistrictID         int     `json:"districtID"`
-	Zip                string  `json:"zip"`
-	ShortName          *string `json:"shortName,omitempty"`
-	IsRecipientAddress *bool   `json:"isRecipientAddress,omitempty"`
+    Name               string  `json:"name"`
+    Email              string  `json:"email"`
+    Phone              *string `json:"phone,omitempty"`
+    Address1           string  `json:"address1"`
+    Address2           *string `json:"address2,omitempty"`
+    CountryCode        string  `json:"countryCode"`
+    CityName           string  `json:"cityName"`
+    CityCode           string  `json:"cityCode"`
+    DistrictName       string  `json:"districtName"`
+    DistrictID         *int    `json:"districtID,omitempty"`
+    Zip                string  `json:"zip"`
+    ShortName          *string `json:"shortName,omitempty"`
+    IsRecipientAddress *bool   `json:"isRecipientAddress,omitempty"`
 }
 
 type CreateShipmentRequestBase struct {

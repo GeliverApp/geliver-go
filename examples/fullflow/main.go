@@ -24,7 +24,7 @@ func main() {
 	sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
 		Name: "ACME Inc.", Email: "ops@acme.test", Phone: &senderPhone,
 		Address1: "Street 1", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-		DistrictName: "Esenyurt", DistrictID: 107605, Zip: "34020",
+		DistrictName: "Esenyurt", Zip: "34020",
 	})
 
 	if err != nil || sender == nil {
@@ -45,7 +45,7 @@ func main() {
 		RecipientAddress: geliver.Address{
 			Name: "John Doe", Email: "john@example.com", Phone: recipientPhone,
 			Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-			DistrictName: "Esenyurt", DistrictID: 107605, Zip: "34020",
+			DistrictName: "Esenyurt", Zip: "34020",
 		},
 	}
 	s, err := c.CreateShipmentWithRecipientAddress(ctx, req)

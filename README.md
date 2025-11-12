@@ -1,4 +1,5 @@
-# Geliver Go SDK
+# Geliver Go SDK  
+[![Go Reference](https://pkg.go.dev/badge/github.com/GeliverApp/geliver-go.svg)](https://pkg.go.dev/github.com/GeliverApp/geliver-go)
 
 Geliver Go SDK — Geliver Kargo Pazaryeri (Shipping Marketplace) API için resmi Golang istemcisi.
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
@@ -64,7 +65,6 @@ func example(ctx context.Context) error {
         CityName: "Istanbul",
         CityCode: "34",
         DistrictName: "Esenyurt",
-        DistrictID: 107605,
         Zip: "34020",
     })
 
@@ -93,7 +93,6 @@ func example(ctx context.Context) error {
             CityName: "Istanbul",
             CityCode: "34",
             DistrictName: "Esenyurt",
-            DistrictID: 107605,
             Zip: "34020",
         },
     })
@@ -134,7 +133,7 @@ Not:
 recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
     Name: "John Doe", Email: "john@example.com",
     Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-    DistrictName: "Kadikoy", DistrictID: 100000, Zip: "34000",
+    DistrictName: "Kadikoy", Zip: "34000",
 })
 
 // Ardından recipientAddressID ile gönderi oluşturun (typed istek)
@@ -216,7 +215,7 @@ _, _ = c.DeleteParcelTemplate(ctx, tpl.ID)
 - Test ortamında her `GET /shipments` çağrısı durumu bir adım ilerletir; prod için webhookları kurun.
 - Test modunu yalnızca denemeler için `Test: ptrb(true)` ile açın; canlı gönderilerde bu alanı set etmeyin.
 - Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.
-- İlçe seçimi için `districtID` tercih edilir; `districtName` her zaman güvenilir olmayabilir.
+
 - Şehir/ilçe verileri için API’yi kullanın:
 
 ```go
