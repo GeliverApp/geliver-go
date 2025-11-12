@@ -58,9 +58,7 @@ type District struct {
   RegionCode string `json:"regionCode,omitempty"`
 }
 
-// Duration model
-type Duration struct {
-}
+// Duration model removed; API returns integer timestamp for duration fields.
 
 // Item model
 type Item struct {
@@ -100,7 +98,7 @@ type Offer struct {
   AmountOld string `json:"amountOld,omitempty"`
   AmountTax string `json:"amountTax,omitempty"`
   AmountVat string `json:"amountVat,omitempty"`
-  AverageEstimatedTime *Duration `json:"averageEstimatedTime,omitempty"`
+  AverageEstimatedTime *int64 `json:"averageEstimatedTime,omitempty"`
   AverageEstimatedTimeHumanReadible string `json:"averageEstimatedTimeHumanReadible,omitempty"`
   BonusBalance string `json:"bonusBalance,omitempty"`
   CreatedAt string `json:"createdAt,omitempty"`
@@ -116,8 +114,8 @@ type Offer struct {
   IsGlobal bool `json:"isGlobal,omitempty"`
   IsMainOffer bool `json:"isMainOffer,omitempty"`
   IsProviderAccountOffer bool `json:"isProviderAccountOffer,omitempty"`
-  MaxEstimatedTime *Duration `json:"maxEstimatedTime,omitempty"`
-  MinEstimatedTime *Duration `json:"minEstimatedTime,omitempty"`
+  MaxEstimatedTime *int64 `json:"maxEstimatedTime,omitempty"`
+  MinEstimatedTime *int64 `json:"minEstimatedTime,omitempty"`
   Owner string `json:"owner,omitempty"`
   PredictedDeliveryTime float64 `json:"predictedDeliveryTime,omitempty"`
   ProviderAccountID string `json:"providerAccountID,omitempty"`

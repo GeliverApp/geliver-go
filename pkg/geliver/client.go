@@ -34,6 +34,8 @@ type envelope[T any] struct {
 type APIError struct {
     Status int
     Code   string
+    Message string
+    AdditionalMessage string
     Body   any
 }
 
@@ -79,6 +81,8 @@ func (c *Client) do(ctx context.Context, method, path string, q url.Values, body
             _ = json.Unmarshal(b, &parsed)
             apiErr := &APIError{Status: res.StatusCode}
             if code, _ := parsed["code"].(string); code != "" { apiErr.Code = code }
+            if msg, _ := parsed["message"].(string); msg != "" { apiErr.Message = msg }
+            if addl, _ := parsed["additionalMessage"].(string); addl != "" { apiErr.AdditionalMessage = addl }
             apiErr.Body = parsed
             if shouldRetry(res.StatusCode) && attempt < c.MaxRetries {
                 attempt++
@@ -88,11 +92,23 @@ func (c *Client) do(ctx context.Context, method, path string, q url.Values, body
             return apiErr
         }
         if out == nil { return nil }
-        // Try envelope
-        type anyEnvelope struct{ Data json.RawMessage `json:"data"` }
-        var env anyEnvelope
-        if err := json.Unmarshal(b, &env); err == nil && env.Data != nil {
-            return json.Unmarshal(env.Data, out)
+        // Check for envelope and error result
+        var root map[string]json.RawMessage
+        if err := json.Unmarshal(b, &root); err == nil {
+            // detect result=false
+            if v, ok := root["result"]; ok {
+                var r bool
+                if err := json.Unmarshal(v, &r); err == nil && !r {
+                    var code, msg, addl string
+                    _ = json.Unmarshal(root["code"], &code)
+                    _ = json.Unmarshal(root["message"], &msg)
+                    _ = json.Unmarshal(root["additionalMessage"], &addl)
+                    return &APIError{Status: res.StatusCode, Code: code, Message: msg, AdditionalMessage: addl, Body: root}
+                }
+            }
+            if data, ok := root["data"]; ok && data != nil {
+                return json.Unmarshal(data, out)
+            }
         }
         return json.Unmarshal(b, out)
     }
