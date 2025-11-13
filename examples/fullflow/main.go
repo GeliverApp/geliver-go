@@ -95,13 +95,30 @@ func main() {
 		return
 	}
 
-	if trx.Shipment != nil && trx.Shipment.LabelURL != "" {
-		b, _ := c.DownloadURL(ctx, trx.Shipment.LabelURL)
-		_ = os.WriteFile("label.pdf", b, 0644)
-	}
-	if trx.Shipment != nil && trx.Shipment.ResponsiveLabelURL != "" {
-		html, _ := c.DownloadResponsiveURL(ctx, trx.Shipment.ResponsiveLabelURL)
-		_ = os.WriteFile("label.html", []byte(html), 0644)
+	// Etiket indirme: LabelFileType kontrolü
+	// Eğer LabelFileType "PROVIDER_PDF" ise, LabelURL'den indirilen PDF etiket kullanılmalıdır.
+	// Eğer LabelFileType "PDF" ise, responsiveLabelURL (HTML) dosyası kullanılabilir.
+	if trx.Shipment != nil {
+		if trx.Shipment.LabelFileType == "PROVIDER_PDF" {
+			// PROVIDER_PDF: Sadece PDF etiket kullanılmalı
+			if trx.Shipment.LabelURL != "" {
+				b, _ := c.DownloadURL(ctx, trx.Shipment.LabelURL)
+				_ = os.WriteFile("label.pdf", b, 0644)
+				fmt.Println("PDF etiket indirildi (PROVIDER_PDF)")
+			}
+		} else if trx.Shipment.LabelFileType == "PDF" {
+			// PDF: ResponsiveLabel (HTML) kullanılabilir
+			if trx.Shipment.ResponsiveLabelURL != "" {
+				html, _ := c.DownloadResponsiveURL(ctx, trx.Shipment.ResponsiveLabelURL)
+				_ = os.WriteFile("label.html", []byte(html), 0644)
+				fmt.Println("HTML etiket indirildi (PDF)")
+			}
+			// İsteğe bağlı olarak PDF de indirilebilir
+			if trx.Shipment.LabelURL != "" {
+				b, _ := c.DownloadURL(ctx, trx.Shipment.LabelURL)
+				_ = os.WriteFile("label.pdf", b, 0644)
+			}
+		}
 	}
 
 	if trx.Shipment != nil {
