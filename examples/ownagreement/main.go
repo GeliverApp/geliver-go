@@ -17,7 +17,7 @@ func main() {
     ctx := context.Background()
 
     sender, err := c.CreateSenderAddress(ctx, g.CreateAddressRequest{
-        Name: "OwnAg Sender", Email: "sender@example.com",
+        Name: "OwnAg Sender", Email: "sender@example.com", Phone: "+905000000097",
         Address1: "Street 1", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
         DistrictName: "Esenyurt", Zip: ptrs("34020"),
     })
@@ -35,7 +35,7 @@ func main() {
             ProviderAccountID: &account,
         },
         RecipientAddress: g.Address{
-            Name: "OwnAg Recipient", Address1: "Dest 2", CountryCode: "TR",
+            Name: "OwnAg Recipient", Phone: "+905000000002", Address1: "Dest 2", CountryCode: "TR",
             CityName: "Istanbul", CityCode: "34", DistrictName: "Esenyurt",
         },
     }

@@ -22,6 +22,11 @@ func (c *Client) CreateTransaction(ctx context.Context, body map[string]any) (*T
     if ov, ok := body["order"].(map[string]any); ok {
         if ov["sourceCode"] == nil || ov["sourceCode"] == "" { ov["sourceCode"] = "API"; body["order"] = ov }
     }
+    if ra, ok := body["recipientAddress"].(map[string]any); ok {
+        if ph, okp := ra["phone"].(string); !okp || ph == "" {
+            return nil, fmt.Errorf("phone is required for recipientAddress")
+        }
+    }
     // normalize numeric-to-string for dimension/weight
     for _, k := range []string{"length","width","height","weight"} {
         if v, ok := body[k]; ok && v != nil { body[k] = toString(v) }

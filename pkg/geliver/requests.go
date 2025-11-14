@@ -3,7 +3,7 @@ package geliver
 type CreateAddressRequest struct {
     Name               string  `json:"name"`
     Email              string  `json:"email"`
-    Phone              *string `json:"phone,omitempty"`
+    Phone              string  `json:"phone"`
     Address1           string  `json:"address1"`
     Address2           *string `json:"address2,omitempty"`
     CountryCode        string  `json:"countryCode"`

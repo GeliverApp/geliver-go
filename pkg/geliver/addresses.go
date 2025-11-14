@@ -39,6 +39,9 @@ func (c *Client) ListAddresses(ctx context.Context, isRecipient *bool, limit, pa
 func (c *Client) CreateSenderAddress(ctx context.Context, req CreateAddressRequest) (*Address, error) {
     f := false
     req.IsRecipientAddress = &f
+    if req.Phone == "" {
+        return nil, errors.New("phone is required for sender addresses")
+    }
     if req.Zip == nil || *req.Zip == "" {
         return nil, errors.New("zip is required for sender addresses")
     }
@@ -49,6 +52,9 @@ func (c *Client) CreateSenderAddress(ctx context.Context, req CreateAddressReque
 func (c *Client) CreateRecipientAddress(ctx context.Context, req CreateAddressRequest) (*Address, error) {
     t := true
     req.IsRecipientAddress = &t
+    if req.Phone == "" {
+        return nil, errors.New("phone is required for recipient addresses")
+    }
     return c.CreateAddress(ctx, req)
 }
 

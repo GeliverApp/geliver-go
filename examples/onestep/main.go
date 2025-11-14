@@ -18,7 +18,7 @@ func main() {
 
     // Minimal sender address (reuse your existing ID in real world)
     sender, err := c.CreateSenderAddress(ctx, g.CreateAddressRequest{
-        Name: "OneStep Sender", Email: "sender@example.com",
+        Name: "OneStep Sender", Email: "sender@example.com", Phone: "+905000000099",
         Address1: "Street 1", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
         DistrictName: "Esenyurt", Zip: ptrs("34020"),
     })
@@ -33,7 +33,7 @@ func main() {
             Weight: &weight, MassUnit: ptrs("kg"),
         },
         RecipientAddress: g.Address{
-            Name: "OneStep Recipient", Address1: "Dest 2", CountryCode: "TR",
+            Name: "OneStep Recipient", Phone: "+905000000000", Address1: "Dest 2", CountryCode: "TR",
             CityName: "Istanbul", CityCode: "34", DistrictName: "Esenyurt",
         },
     }

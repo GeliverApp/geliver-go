@@ -60,15 +60,20 @@ func (c *Client) CreateShipmentTyped(ctx context.Context, body any) (*Shipment, 
 	if m == nil {
 		m = map[string]any{}
 	}
-	if ov, ok := m["order"]; ok {
-		if ord, ok2 := ov.(map[string]any); ok2 {
-			if _, ok3 := ord["sourceCode"]; !ok3 || ord["sourceCode"] == "" {
-				ord["sourceCode"] = "API"
-				m["order"] = ord
-			}
-		}
-	}
-	return c.CreateShipment(ctx, m)
+    if ov, ok := m["order"]; ok {
+        if ord, ok2 := ov.(map[string]any); ok2 {
+            if _, ok3 := ord["sourceCode"]; !ok3 || ord["sourceCode"] == "" {
+                ord["sourceCode"] = "API"
+                m["order"] = ord
+            }
+        }
+    }
+    if ra, ok := m["recipientAddress"].(map[string]any); ok {
+        if ph, okp := ra["phone"].(string); !okp || ph == "" {
+            return nil, errors.New("phone is required for recipientAddress")
+        }
+    }
+    return c.CreateShipment(ctx, m)
 }
 
 // CreateShipmentWithRecipientID creates a shipment using a recipient address ID (typed request).
