@@ -2,6 +2,7 @@ package geliver
 
 import (
     "context"
+    "errors"
     "net/url"
 )
 
@@ -38,6 +39,9 @@ func (c *Client) ListAddresses(ctx context.Context, isRecipient *bool, limit, pa
 func (c *Client) CreateSenderAddress(ctx context.Context, req CreateAddressRequest) (*Address, error) {
     f := false
     req.IsRecipientAddress = &f
+    if req.Zip == nil || *req.Zip == "" {
+        return nil, errors.New("zip is required for sender addresses")
+    }
     return c.CreateAddress(ctx, req)
 }
 

@@ -90,53 +90,28 @@ func (c *Client) GetShipment(ctx context.Context, shipmentID string) (*Shipment,
 }
 
 func (c *Client) ListShipments(ctx context.Context, p *ListParams) (*ListShipmentsResponse, error) {
-	q := url.Values{}
-	if p != nil {
-		if p.Limit != nil {
-			q.Set("limit", itoa(*p.Limit))
-		}
-		if p.Page != nil {
-			q.Set("page", itoa(*p.Page))
-		}
-		if p.SortBy != nil {
-			q.Set("sortBy", *p.SortBy)
-		}
-		if p.Filter != nil {
-			q.Set("filter", *p.Filter)
-		}
-		if p.StartDate != nil {
-			q.Set("startDate", *p.StartDate)
-		}
-		if p.EndDate != nil {
-			q.Set("endDate", *p.EndDate)
-		}
-		if p.StatusFilter != nil {
-			q.Set("statusFilter", *p.StatusFilter)
-		}
-		if p.InvoiceID != nil {
-			q.Set("invoiceID", *p.InvoiceID)
-		}
-		if p.MerchantCode != nil {
-			q.Set("merchantCode", *p.MerchantCode)
-		}
-		if p.OrderNumber != nil {
-			q.Set("orderNumber", *p.OrderNumber)
-		}
-		if p.ProviderServiceCode != nil {
-			q.Set("providerServiceCode", *p.ProviderServiceCode)
-		}
-		if p.StoreIdentifier != nil {
-			q.Set("storeIdentifier", *p.StoreIdentifier)
-		}
-		if p.IsReturned != nil {
-			q.Set("isReturned", btoa(*p.IsReturned))
-		}
-	}
-	var out ListShipmentsResponse
-	if err := c.do(ctx, "GET", "/shipments", q, nil, &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
+    q := url.Values{}
+    if p != nil {
+        if p.Limit != nil { q.Set("limit", itoa(*p.Limit)) }
+        if p.Page != nil { q.Set("page", itoa(*p.Page)) }
+        if p.SortBy != nil { q.Set("sortBy", *p.SortBy) }
+        if p.Filter != nil { q.Set("filter", *p.Filter) }
+        if p.StartDate != nil { q.Set("startDate", *p.StartDate) }
+        if p.EndDate != nil { q.Set("endDate", *p.EndDate) }
+        if p.StatusFilter != nil { q.Set("statusFilter", *p.StatusFilter) }
+        if p.InvoiceID != nil { q.Set("invoiceID", *p.InvoiceID) }
+        if p.MerchantCode != nil { q.Set("merchantCode", *p.MerchantCode) }
+        if p.OrderNumber != nil { q.Set("orderNumber", *p.OrderNumber) }
+        if p.ProviderServiceCode != nil { q.Set("providerServiceCode", *p.ProviderServiceCode) }
+        if p.StoreIdentifier != nil { q.Set("storeIdentifier", *p.StoreIdentifier) }
+        if p.IsReturned != nil { q.Set("isReturned", btoa(*p.IsReturned)) }
+    }
+    // The API may return either an envelope with pagination or a plain array.
+    var items []Shipment
+    if err := c.do(ctx, "GET", "/shipments", q, nil, &items); err != nil {
+        return nil, err
+    }
+    return &ListShipmentsResponse{ Data: items }, nil
 }
 
 func (c *Client) UpdatePackage(ctx context.Context, shipmentID string, body map[string]any) (*Shipment, error) {

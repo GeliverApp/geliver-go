@@ -21,11 +21,11 @@ func main() {
 	c := geliver.NewClient(token)
 	ctx := context.Background()
 	senderPhone := "+905051234567"
-	sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
-		Name: "Şirketim A.Ş", Email: "ops@sirketim.net", Phone: &senderPhone,
-		Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-		DistrictName: "Esenyurt", Zip: "34020",
-	})
+sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
+    Name: "Şirketim A.Ş", Email: "ops@sirketim.net", Phone: &senderPhone,
+    Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
+    DistrictName: "Esenyurt", Zip: ptrs("34020"),
+})
 
 	if err != nil || sender == nil {
 		fmt.Println("create sender error", err)
@@ -37,16 +37,19 @@ func main() {
 	recipientPhone := "+905051234568"
 	length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
 	req := geliver.CreateShipmentWithRecipientAddress{
-		CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
-			SenderAddressID: sender.ID,
-			Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"), Test: ptrb(true),
-			Order: &geliver.OrderRequest{OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL")},
-		},
-		RecipientAddress: geliver.Address{
-			Name: "Ahmet Mehmet", Email: "ahmetmehmet@ornek.com", Phone: recipientPhone,
-			Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-			DistrictName: "Esenyurt", Zip: "34020",
-		},
+        CreateShipmentRequestBase: geliver.CreateShipmentRequestBase{
+            SenderAddressID: sender.ID,
+            Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"), Weight: &weight, MassUnit: ptrs("kg"),
+            // Normal flow: explicitly set to false; set true for kapıda ödeme (Payment on Delivery)
+            ProductPaymentOnDelivery: ptrb(false),
+            Test: ptrb(true),
+            Order: &geliver.OrderRequest{OrderNumber: "ABC12333322", SourceIdentifier: ptrs("https://magazaadresiniz.com"), TotalAmount: ptrs("150"), TotalAmountCurrency: ptrs("TL")},
+        },
+        RecipientAddress: geliver.Address{
+            Name: "Ahmet Mehmet", Email: "ahmetmehmet@ornek.com", Phone: recipientPhone,
+            Address1: "Hasan mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
+            DistrictName: "Esenyurt",
+        },
 	}
 	s, err := c.CreateShipmentWithRecipientAddress(ctx, req)
 	if err != nil || s == nil {

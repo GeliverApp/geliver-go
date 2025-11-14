@@ -11,7 +11,7 @@ type CreateAddressRequest struct {
     CityCode           string  `json:"cityCode"`
     DistrictName       string  `json:"districtName"`
     DistrictID         *int    `json:"districtID,omitempty"`
-    Zip                string  `json:"zip"`
+    Zip                *string `json:"zip,omitempty"`
     ShortName          *string `json:"shortName,omitempty"`
     IsRecipientAddress *bool   `json:"isRecipientAddress,omitempty"`
 }
@@ -25,6 +25,9 @@ type CreateShipmentRequestBase struct {
     Weight              *string `json:"weight,omitempty"`
     MassUnit            *string `json:"massUnit,omitempty"`
     ProviderServiceCode *string `json:"providerServiceCode,omitempty"`
+    ProviderAccountID   *string `json:"providerAccountID,omitempty"`
+    // If true, enables payment on delivery (kapıda ödeme)
+    ProductPaymentOnDelivery *bool   `json:"productPaymentOnDelivery,omitempty"`
     Test                *bool   `json:"test,omitempty"`
     Order               *OrderRequest `json:"order,omitempty"`
 }
