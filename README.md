@@ -342,3 +342,23 @@ clone, _ := c.CloneShipment(ctx, sh.ID)
 _ = clone
 ```
 Örnek: go/examples/ops/main.go
+
+---
+
+## Hatalar ve İstisnalar
+
+- İstemci iki durumda hata döndürür: (1) HTTP 4xx/5xx, (2) JSON envelope `result == false`.
+- Hata türü `*geliver.APIError` olup sunucu alanlarını taşır: `Code`, `Message`, `AdditionalMessage`, `Status`, `Body`.
+
+```go
+s, err := c.CreateShipmentWithRecipientAddress(ctx, req)
+if err != nil {
+    if ae, ok := err.(*geliver.APIError); ok {
+        fmt.Println("code:", ae.Code)
+        fmt.Println("message:", ae.Message)
+        fmt.Println("additional:", ae.AdditionalMessage)
+        fmt.Println("status:", ae.Status)
+    }
+    return err
+}
+```
