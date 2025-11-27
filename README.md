@@ -49,6 +49,7 @@ package main
 
 import (
     "context"
+    "errors"
     "os"
     g "github.com/GeliverApp/geliver-go/pkg/geliver"
 )
@@ -100,9 +101,26 @@ func example(ctx context.Context) error {
         },
     })
 
-    // Etiketler teklif kabulünden (Transaction) sonra üretilir; kabulün ardından URL'lerden indirebilirsiniz de. URL'lere her shipment nesnesinin içinden ulaşılır.
+    // Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
+    offers := s.Offers
+    if offers.Cheapest == nil {
+        latest, err := c.GetShipment(ctx, s.ID)
+        if err != nil {
+            return err
+        }
+        offers = latest.Offers
+    }
+    if offers.Cheapest == nil {
+        return errors.New("offers not ready yet; call GetShipment again later")
+    }
 
-    _ = s
+    tx, err := c.AcceptOffer(ctx, offers.Cheapest.ID)
+    if err != nil {
+        return err
+    }
+
+    // Etiketler teklif kabulünden (Transaction) sonra üretilir; kabulün ardından URL'lerden indirebilirsiniz de. URL'lere her shipment nesnesinin içinden ulaşılır.
+    _ = tx
     return nil
 }
 ```

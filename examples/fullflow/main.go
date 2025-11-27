@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/GeliverApp/geliver-go/pkg/geliver"
 )
@@ -64,37 +63,28 @@ sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
 
 	// Etiket indirme: Teklif kabulünden sonra (Transaction) gelen URL'leri kullanabilirsiniz de; URL'lere her shipment nesnesinin içinden ulaşılır.
 
-	// Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
+	// Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
 	offers := s.Offers
-	if !(offers.PercentageCompleted == 100 || offers.Cheapest != nil) {
-		for {
-			gs, err := c.GetShipment(ctx, s.ID)
-			if err != nil || gs == nil {
-				fmt.Println("fetch shipment error", err)
-				return
-			}
-			if gs.Offers.PercentageCompleted >= 100 && gs.Offers.Cheapest != nil {
-				offers = gs.Offers
-				break
-			}
-			time.Sleep(time.Second)
-		}
-	}
-	// Accept offer
-
-	var trx *geliver.Transaction
-	if offers.Cheapest != nil {
-		trx, err = c.AcceptOffer(ctx, offers.Cheapest.ID)
-		if err != nil {
-			if apiErr, ok := err.(*geliver.APIError); ok {
-				fmt.Println("accept offer API error:", apiErr.Status, apiErr.Code, apiErr.Body)
-			} else {
-				fmt.Println("accept offer error:", err)
-			}
+	if offers.Cheapest == nil {
+		gs, err := c.GetShipment(ctx, s.ID)
+		if err != nil || gs == nil {
+			fmt.Println("fetch shipment error", err)
 			return
 		}
-	} else {
-		fmt.Println("No cheapest offer available")
+		offers = gs.Offers
+	}
+	if offers.Cheapest == nil {
+		fmt.Println("No cheapest offer available (henüz hazır değil)")
+		return
+	}
+
+	trx, err := c.AcceptOffer(ctx, offers.Cheapest.ID)
+	if err != nil {
+		if apiErr, ok := err.(*geliver.APIError); ok {
+			fmt.Println("accept offer API error:", apiErr.Status, apiErr.Code, apiErr.Body)
+		} else {
+			fmt.Println("accept offer error:", err)
+		}
 		return
 	}
 
