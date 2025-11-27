@@ -63,16 +63,8 @@ sender, err := c.CreateSenderAddress(ctx, geliver.CreateAddressRequest{
 
 	// Etiket indirme: Teklif kabulünden sonra (Transaction) gelen URL'leri kullanabilirsiniz de; URL'lere her shipment nesnesinin içinden ulaşılır.
 
-	// Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
+	// Teklifler create yanıtındaki offers alanında gelir
 	offers := s.Offers
-	if offers.Cheapest == nil {
-		gs, err := c.GetShipment(ctx, s.ID)
-		if err != nil || gs == nil {
-			fmt.Println("fetch shipment error", err)
-			return
-		}
-		offers = gs.Offers
-	}
 	if offers.Cheapest == nil {
 		fmt.Println("No cheapest offer available (henüz hazır değil)")
 		return

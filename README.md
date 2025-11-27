@@ -101,17 +101,10 @@ func example(ctx context.Context) error {
         },
     })
 
-    // Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
+    // Teklifler create yanıtındaki offers alanında gelir
     offers := s.Offers
     if offers.Cheapest == nil {
-        latest, err := c.GetShipment(ctx, s.ID)
-        if err != nil {
-            return err
-        }
-        offers = latest.Offers
-    }
-    if offers.Cheapest == nil {
-        return errors.New("offers not ready yet; call GetShipment again later")
+        return errors.New("offers not ready yet; GET /shipments ile tekrar deneyin")
     }
 
     tx, err := c.AcceptOffer(ctx, offers.Cheapest.ID)
