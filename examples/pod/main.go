@@ -45,7 +45,7 @@ func main() {
 			Order:                    &order,
 		},
 		RecipientAddress: g.Address{
-			Name: "POD Recipient", Phone: "+905000000001", Address1: "Dest 2", CountryCode: "TR",
+			Name: "POD Recipient", Phone: "+905000000001", Address1: "Atatürk Mahallesi", CountryCode: "TR",
 			CityName: "Istanbul", CityCode: "34", DistrictName: "Esenyurt",
 		},
 	}

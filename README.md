@@ -94,7 +94,7 @@ func example(ctx context.Context) error {
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
-            Address1: "Dest St 2",
+            Address1: "Atatürk Mahallesi",
             CountryCode: "TR",
             CityName: "Istanbul",
             CityCode: "34",
@@ -147,7 +147,7 @@ Not:
 // Alıcı adresini sunucuda oluşturun ve IDyi alın
 recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
     Name: "John Doe", Email: "john@example.com",
-    Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
+    Address1: "Atatürk Mahallesi", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
     DistrictName: "Kadıköy",
 })
 

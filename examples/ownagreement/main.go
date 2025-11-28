@@ -41,7 +41,7 @@ func main() {
 			ProviderAccountID:   &account,
 		},
 		RecipientAddress: g.Address{
-			Name: "OwnAg Recipient", Phone: "+905000000002", Address1: "Dest 2", CountryCode: "TR",
+			Name: "OwnAg Recipient", Phone: "+905000000002", Address1: "Atatürk Mahallesi", CountryCode: "TR",
 			CityName: "Istanbul", CityCode: "34", DistrictName: "Esenyurt",
 		},
 	}

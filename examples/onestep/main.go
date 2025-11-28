@@ -39,7 +39,7 @@ func main() {
 			Weight: &weight, MassUnit: ptrs("kg"),
 		},
 		RecipientAddress: g.Address{
-			Name: "OneStep Recipient", Phone: "+905000000000", Address1: "Dest 2", CountryCode: "TR",
+			Name: "OneStep Recipient", Phone: "+905000000000", Address1: "Atatürk Mahallesi", CountryCode: "TR",
 			CityName: "Istanbul", CityCode: "34", DistrictName: "Esenyurt",
 		},
 	}
