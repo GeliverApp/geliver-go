@@ -1,4 +1,5 @@
-# Geliver Go SDK  
+# Geliver Go SDK
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/GeliverApp/geliver-go.svg)](https://pkg.go.dev/github.com/GeliverApp/geliver-go)
 
 Geliver Go SDK — Geliver Kargo Pazaryeri (Shipping Marketplace) API için resmi Golang istemcisi.
@@ -61,7 +62,7 @@ func example(ctx context.Context) error {
     sender, _ := c.CreateSenderAddress(ctx, g.CreateAddressRequest{
         Name: "ACME",
         Email: "ops@acme.test",
-        Address1: "Street 1",
+        Address1: "Hasan Mahallesi",
         CountryCode: "TR",
         CityName: "Istanbul",
         CityCode: "34",
@@ -147,7 +148,7 @@ Not:
 recipient, _ := c.CreateRecipientAddress(ctx, g.CreateAddressRequest{
     Name: "John Doe", Email: "john@example.com",
     Address1: "Dest St 2", CountryCode: "TR", CityName: "Istanbul", CityCode: "34",
-    DistrictName: "Kadikoy",
+    DistrictName: "Kadıköy",
 })
 
 // Ardından recipientAddressID ile gönderi oluşturun (typed istek)
@@ -270,6 +271,7 @@ reqTx := g.CreateShipmentWithRecipientAddress{
 trx, _ := c.CreateTransactionWithRecipientAddress(ctx, reqTx)
 _ = trx
 ```
+
 Örnek: go/examples/onestep/main.go
 
 - Kapıda ödeme (Payment on Delivery): https://docs.geliver.io/docs/shipments_and_transaction/create_shipment/create_shipment_payment_on_delivery
@@ -291,6 +293,7 @@ reqPod := g.CreateShipmentWithRecipientAddress{
 }
 _, _ = c.CreateTransactionWithRecipientAddress(ctx, reqPod)
 ```
+
 Örnek: go/examples/pod/main.go
 
 - Kendi anlaşmanızla etiket satın alma (provider ile): https://docs.geliver.io/docs/shipments_and_transaction/create_shipment/create_shipment_provider
@@ -312,6 +315,7 @@ reqProv := g.CreateShipmentWithRecipientAddress{
 trx2, _ := c.CreateTransactionWithRecipientAddress(ctx, reqProv)
 _ = trx2
 ```
+
 Örnek: go/examples/ownagreement/main.go
 
 ### Gönderi Listeleme, Getir, Güncelle, İptal, Klonla
@@ -352,6 +356,7 @@ _, _ = c.CancelShipment(ctx, sh.ID)
 clone, _ := c.CloneShipment(ctx, sh.ID)
 _ = clone
 ```
+
 Örnek: go/examples/ops/main.go
 
 ---
