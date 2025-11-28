@@ -389,3 +389,10 @@ type Tracking struct {
   TrackingSubStatusCode string `json:"trackingSubStatusCode,omitempty"`
   UpdatedAt string `json:"updatedAt,omitempty"`
 }
+
+// WebhookUpdateTrackingRequest model
+type WebhookUpdateTrackingRequest struct {
+  Event string `json:"event"`
+  Metadata string `json:"metadata"`
+  Shipment Shipment `json:"data"`
+}

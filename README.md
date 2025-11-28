@@ -147,6 +147,33 @@ Not:
 - `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
 - `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
 
+## Webhooklar
+
+```go
+import (
+    "encoding/json"
+    "io"
+    "log"
+    "net/http"
+
+    g "github.com/GeliverApp/geliver-go/pkg/geliver"
+)
+
+func handleWebhook(w http.ResponseWriter, r *http.Request) {
+    body, _ := io.ReadAll(r.Body)
+    // TODO: verify signature (şimdilik devre dışı)
+    var evt g.WebhookUpdateTrackingRequest
+    if err := json.Unmarshal(body, &evt); err != nil {
+        w.WriteHeader(http.StatusBadRequest)
+        return
+    }
+    if evt.Event == "TRACK_UPDATED" {
+        log.Println("Tracking update:", evt.Shipment.TrackingURL, evt.Shipment.TrackingNumber)
+    }
+    w.WriteHeader(http.StatusOK)
+}
+```
+
 ## Alıcı ID'si ile oluşturma (recipientAddressID)
 
 ```go
