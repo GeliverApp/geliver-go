@@ -33,7 +33,7 @@ func main() {
 	// Payment on Delivery: requires provider service supporting POD and order totals
 	length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
 	prov := "PTT_KAPIDA_ODEME"
-	total, currency := "150", "TL"
+	total, currency := "150", "TRY"
 	order := g.OrderRequest{OrderNumber: "POD-12345", TotalAmount: &total, TotalAmountCurrency: &currency}
 	req := g.CreateShipmentWithRecipientAddress{
 		CreateShipmentRequestBase: g.CreateShipmentRequestBase{

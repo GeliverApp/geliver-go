@@ -90,7 +90,13 @@ func example(ctx context.Context) error {
             ProductPaymentOnDelivery: ptrb(false),
             // Test modu sadece deneme amaçlıdır; canlı ortamda bu alanı set etmeyin.
             Test: ptrb(true),
-            Order:          &g.OrderRequest{ OrderNumber: "ABC12333322", SourceIdentifier: &[]string{"https://magazaadresiniz.com"}[0], TotalAmount: &[]string{"150"}[0], TotalAmountCurrency: &[]string{"TL"}[0] },
+            Order: &g.OrderRequest{
+                OrderNumber: "WEB-12345",
+                // SourceIdentifier alanına mağazanızın tam adresini (ör. https://magazam.com) gönderin.
+                SourceIdentifier: &[]string{"https://magazam.com"}[0],
+                TotalAmount: &[]string{"150"}[0],
+                TotalAmountCurrency: &[]string{"TRY"}[0],
+            },
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
@@ -120,8 +126,6 @@ func example(ctx context.Context) error {
 ```
 
 > Alternatif: Uygun olduğunda sunucuda kayıtlı `recipientAddressID` alanını kullanabilirsiniz.
-
----
 
 ## İade Gönderisi Oluşturun
 
@@ -193,7 +197,7 @@ cities, _ := c.ListCities(ctx, "TR")
 districts, _ := c.ListDistricts(ctx, "TR", "34")
 ```
 
-Provider hesapları:
+Kendi Kargo Anlaşmanız:
 
 ```go
 acc, _ := c.CreateProviderAccount(ctx, g.ProviderAccountRequest{
@@ -279,7 +283,7 @@ _ = trx
 ```go
 // Kapıda ödeme: order alanında toplam ve para birimi zorunludur.
 pod := true
-total := "150"; currency := "TL"
+total := "150"; currency := "TRY"
 order := g.OrderRequest{ OrderNumber: "ABC12333322", TotalAmount: &total, TotalAmountCurrency: &currency }
 reqPod := g.CreateShipmentWithRecipientAddress{
     CreateShipmentRequestBase: g.CreateShipmentRequestBase{
