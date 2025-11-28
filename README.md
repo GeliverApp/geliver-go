@@ -62,6 +62,7 @@ func example(ctx context.Context) error {
     sender, _ := c.CreateSenderAddress(ctx, g.CreateAddressRequest{
         Name: "ACME",
         Email: "ops@acme.test",
+        Phone: "+905051234567",
         Address1: "Hasan Mahallesi",
         CountryCode: "TR",
         CityName: "Istanbul",
@@ -100,6 +101,7 @@ func example(ctx context.Context) error {
         },
         RecipientAddress: g.Address{
             Name: "John Doe",
+            Phone: "+905051234568",
             Address1: "Atatürk Mahallesi",
             CountryCode: "TR",
             CityName: "Istanbul",
