@@ -32,11 +32,13 @@ func main() {
 
 	// One-step: create transaction directly without accept flow
 	length, width, height, weight := "10.0", "10.0", "10.0", "1.0"
+	testMode := true
 	req := g.CreateShipmentWithRecipientAddress{
 		CreateShipmentRequestBase: g.CreateShipmentRequestBase{
 			SenderAddressID: sender.ID,
 			Length:          &length, Width: &width, Height: &height, DistanceUnit: ptrs("cm"),
 			Weight: &weight, MassUnit: ptrs("kg"),
+			Test:   &testMode,
 		},
 		RecipientAddress: g.Address{
 			Name: "OneStep Recipient", Phone: "+905000000000", Address1: "Atatürk Mahallesi", CountryCode: "TR",
