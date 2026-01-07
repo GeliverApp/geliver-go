@@ -297,6 +297,7 @@ reqTx := g.CreateShipmentWithRecipientAddress{
         SenderAddressID: sender.ID,
         Length: &length, Width: &width, Height: &height, DistanceUnit: &distanceUnit,
         Weight: &weight, MassUnit: &massUnit,
+        Test: ptrb(true),
         ProviderServiceCode: &prov,
     },
     RecipientAddress: g.Address{ /* ... */ },
@@ -311,6 +312,7 @@ _ = trx
 
 ```go
 // Kapıda ödeme: order alanında toplam ve para birimi zorunludur.
+provPod := "PTT_KAPIDA_ODEME"
 pod := true
 total := "150"; currency := "TRY"
 order := g.OrderRequest{ OrderNumber: "ABC12333322", TotalAmount: &total, TotalAmountCurrency: &currency }
@@ -319,6 +321,8 @@ reqPod := g.CreateShipmentWithRecipientAddress{
         SenderAddressID: sender.ID,
         Length: &length, Width: &width, Height: &height, DistanceUnit: &distanceUnit,
         Weight: &weight, MassUnit: &massUnit,
+        Test: ptrb(true),
+        ProviderServiceCode: &provPod,
         ProductPaymentOnDelivery: &pod,
         Order: &order,
     },
@@ -333,13 +337,14 @@ _, _ = c.CreateTransactionWithRecipientAddress(ctx, reqPod)
 
 ```go
 // Kendi anlaşmanızla satın alma: providerAccountID alanını da gönderin.
-prov2 := "ARAS_EXPRESS"
+prov2 := "SURAT_STANDART"
 accID := "YOUR_PROVIDER_ACCOUNT_ID"
 reqProv := g.CreateShipmentWithRecipientAddress{
     CreateShipmentRequestBase: g.CreateShipmentRequestBase{
         SenderAddressID: sender.ID,
         Length: &length, Width: &width, Height: &height, DistanceUnit: &distanceUnit,
         Weight: &weight, MassUnit: &massUnit,
+        Test: ptrb(true),
         ProviderServiceCode: &prov2,
         ProviderAccountID: &accID,
     },
