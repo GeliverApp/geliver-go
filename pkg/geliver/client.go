@@ -4,6 +4,7 @@ import (
     "bytes"
     "context"
     "encoding/json"
+    "fmt"
     "io"
     "net/http"
     "net/url"
@@ -39,7 +40,22 @@ type APIError struct {
     Body   any
 }
 
-func (e *APIError) Error() string { return "geliver: api error" }
+func (e *APIError) Error() string {
+    parts := []string{"geliver: api error"}
+    if e.Status != 0 {
+        parts = append(parts, fmt.Sprintf("status=%d", e.Status))
+    }
+    if e.Code != "" {
+        parts = append(parts, "code="+e.Code)
+    }
+    if e.Message != "" {
+        parts = append(parts, "message="+e.Message)
+    }
+    if e.AdditionalMessage != "" {
+        parts = append(parts, "additional="+e.AdditionalMessage)
+    }
+    return strings.Join(parts, " ")
+}
 
 func NewClient(token string) *Client {
     return &Client{
