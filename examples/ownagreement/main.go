@@ -9,6 +9,7 @@ import (
 )
 
 func ptrs(s string) *string { return &s }
+func ptrb(b bool) *bool     { return &b }
 
 func main() {
 	token := os.Getenv("GELIVER_TOKEN")

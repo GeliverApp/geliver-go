@@ -15,9 +15,13 @@ func TestCreateTransactionWrapsShipment(t *testing.T) {
             var body map[string]any
             if err := json.NewDecoder(r.Body).Decode(&body); err != nil { t.Fatal(err) }
             if _, ok := body["test"]; ok { t.Fatalf("test must be nested under shipment") }
+            if body["providerServiceCode"] != "SURAT_STANDART" { t.Fatalf("expected providerServiceCode at root") }
+            if body["providerAccountID"] != "acc-1" { t.Fatalf("expected providerAccountID at root") }
             shipment, ok := body["shipment"].(map[string]any)
             if !ok { t.Fatalf("expected shipment object") }
             if shipment["test"] != true { t.Fatalf("expected shipment.test=true") }
+            if _, ok := shipment["providerServiceCode"]; ok { t.Fatalf("providerServiceCode must be at root") }
+            if _, ok := shipment["providerAccountID"]; ok { t.Fatalf("providerAccountID must be at root") }
             if _, ok := shipment["length"].(string); !ok { t.Fatalf("expected shipment.length to be string") }
             if _, ok := shipment["weight"].(string); !ok { t.Fatalf("expected shipment.weight to be string") }
             order, ok := shipment["order"].(map[string]any)
@@ -42,6 +46,8 @@ func TestCreateTransactionWrapsShipment(t *testing.T) {
         "distanceUnit": "cm",
         "massUnit":     "kg",
         "test":         true,
+        "providerServiceCode": "SURAT_STANDART",
+        "providerAccountID":   "acc-1",
         "order":        map[string]any{"orderNumber": "ORDER-1"},
     })
     if err != nil { t.Fatal(err) }

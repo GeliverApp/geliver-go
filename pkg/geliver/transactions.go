@@ -19,21 +19,45 @@ func (c *Client) AcceptOffer(ctx context.Context, offerID string) (*Transaction,
 func (c *Client) CreateTransaction(ctx context.Context, body map[string]any) (*Transaction, error) {
     payload := map[string]any{}
     for k, v := range body { payload[k] = v }
-    // default order.sourceCode
-    if ov, ok := payload["order"].(map[string]any); ok {
-        if ov["sourceCode"] == nil || ov["sourceCode"] == "" { ov["sourceCode"] = "API"; payload["order"] = ov }
+
+    // Allow passing a full CreateTransactionRequest-like map: {"shipment": {...}, "providerServiceCode": "...", ...}
+    shipment := payload
+    if sh, ok := payload["shipment"].(map[string]any); ok {
+        shipment = map[string]any{}
+        for k, v := range sh { shipment[k] = v }
     }
-    if ra, ok := payload["recipientAddress"].(map[string]any); ok {
+    // default order.sourceCode
+    if ov, ok := shipment["order"].(map[string]any); ok {
+        if ov["sourceCode"] == nil || ov["sourceCode"] == "" { ov["sourceCode"] = "API"; shipment["order"] = ov }
+    }
+    if ra, ok := shipment["recipientAddress"].(map[string]any); ok {
         if ph, okp := ra["phone"].(string); !okp || ph == "" {
             return nil, fmt.Errorf("phone is required for recipientAddress")
         }
     }
     // normalize numeric-to-string for dimension/weight
     for _, k := range []string{"length","width","height","weight"} {
-        if v, ok := payload[k]; ok && v != nil { payload[k] = toString(v) }
+        if v, ok := shipment[k]; ok && v != nil { shipment[k] = toString(v) }
     }
     var out Transaction
-    if err := c.do(ctx, "POST", "/transactions", nil, map[string]any{"shipment": payload}, &out); err != nil { return nil, err }
+    wrapper := map[string]any{"shipment": shipment}
+    providerAccountID := payload["providerAccountID"]
+    if providerAccountID == nil {
+        providerAccountID = shipment["providerAccountID"]
+    }
+    if providerAccountID != nil {
+        wrapper["providerAccountID"] = providerAccountID
+        delete(shipment, "providerAccountID")
+    }
+    providerServiceCode := payload["providerServiceCode"]
+    if providerServiceCode == nil {
+        providerServiceCode = shipment["providerServiceCode"]
+    }
+    if providerServiceCode != nil {
+        wrapper["providerServiceCode"] = providerServiceCode
+        delete(shipment, "providerServiceCode")
+    }
+    if err := c.do(ctx, "POST", "/transactions", nil, wrapper, &out); err != nil { return nil, err }
     return &out, nil
 }
 
