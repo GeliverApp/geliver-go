@@ -41,7 +41,7 @@ func (c *Client) CreateShipment(ctx context.Context, body map[string]any) (*Ship
 	}
 	if ord, ok := body["order"].(map[string]any); ok {
 		if _, ok2 := ord["sourceCode"]; !ok2 || ord["sourceCode"] == "" {
-			ord["sourceCode"] = "API"
+			ord["sourceCode"] = "SDK"
 			body["order"] = ord
 		}
 	}
@@ -60,20 +60,20 @@ func (c *Client) CreateShipmentTyped(ctx context.Context, body any) (*Shipment, 
 	if m == nil {
 		m = map[string]any{}
 	}
-    if ov, ok := m["order"]; ok {
-        if ord, ok2 := ov.(map[string]any); ok2 {
-            if _, ok3 := ord["sourceCode"]; !ok3 || ord["sourceCode"] == "" {
-                ord["sourceCode"] = "API"
-                m["order"] = ord
-            }
-        }
-    }
-    if ra, ok := m["recipientAddress"].(map[string]any); ok {
-        if ph, okp := ra["phone"].(string); !okp || ph == "" {
-            return nil, errors.New("phone is required for recipientAddress")
-        }
-    }
-    return c.CreateShipment(ctx, m)
+	if ov, ok := m["order"]; ok {
+		if ord, ok2 := ov.(map[string]any); ok2 {
+			if _, ok3 := ord["sourceCode"]; !ok3 || ord["sourceCode"] == "" {
+				ord["sourceCode"] = "SDK"
+				m["order"] = ord
+			}
+		}
+	}
+	if ra, ok := m["recipientAddress"].(map[string]any); ok {
+		if ph, okp := ra["phone"].(string); !okp || ph == "" {
+			return nil, errors.New("phone is required for recipientAddress")
+		}
+	}
+	return c.CreateShipment(ctx, m)
 }
 
 // CreateShipmentWithRecipientID creates a shipment using a recipient address ID (typed request).
@@ -95,28 +95,54 @@ func (c *Client) GetShipment(ctx context.Context, shipmentID string) (*Shipment,
 }
 
 func (c *Client) ListShipments(ctx context.Context, p *ListParams) (*ListShipmentsResponse, error) {
-    q := url.Values{}
-    if p != nil {
-        if p.Limit != nil { q.Set("limit", itoa(*p.Limit)) }
-        if p.Page != nil { q.Set("page", itoa(*p.Page)) }
-        if p.SortBy != nil { q.Set("sortBy", *p.SortBy) }
-        if p.Filter != nil { q.Set("filter", *p.Filter) }
-        if p.StartDate != nil { q.Set("startDate", *p.StartDate) }
-        if p.EndDate != nil { q.Set("endDate", *p.EndDate) }
-        if p.StatusFilter != nil { q.Set("statusFilter", *p.StatusFilter) }
-        if p.InvoiceID != nil { q.Set("invoiceID", *p.InvoiceID) }
-        if p.MerchantCode != nil { q.Set("merchantCode", *p.MerchantCode) }
-        if p.OrderNumber != nil { q.Set("orderNumber", *p.OrderNumber) }
-        if p.ProviderServiceCode != nil { q.Set("providerServiceCode", *p.ProviderServiceCode) }
-        if p.StoreIdentifier != nil { q.Set("storeIdentifier", *p.StoreIdentifier) }
-        if p.IsReturned != nil { q.Set("isReturned", btoa(*p.IsReturned)) }
-    }
-    // The API may return either an envelope with pagination or a plain array.
-    var items []Shipment
-    if err := c.do(ctx, "GET", "/shipments", q, nil, &items); err != nil {
-        return nil, err
-    }
-    return &ListShipmentsResponse{ Data: items }, nil
+	q := url.Values{}
+	if p != nil {
+		if p.Limit != nil {
+			q.Set("limit", itoa(*p.Limit))
+		}
+		if p.Page != nil {
+			q.Set("page", itoa(*p.Page))
+		}
+		if p.SortBy != nil {
+			q.Set("sortBy", *p.SortBy)
+		}
+		if p.Filter != nil {
+			q.Set("filter", *p.Filter)
+		}
+		if p.StartDate != nil {
+			q.Set("startDate", *p.StartDate)
+		}
+		if p.EndDate != nil {
+			q.Set("endDate", *p.EndDate)
+		}
+		if p.StatusFilter != nil {
+			q.Set("statusFilter", *p.StatusFilter)
+		}
+		if p.InvoiceID != nil {
+			q.Set("invoiceID", *p.InvoiceID)
+		}
+		if p.MerchantCode != nil {
+			q.Set("merchantCode", *p.MerchantCode)
+		}
+		if p.OrderNumber != nil {
+			q.Set("orderNumber", *p.OrderNumber)
+		}
+		if p.ProviderServiceCode != nil {
+			q.Set("providerServiceCode", *p.ProviderServiceCode)
+		}
+		if p.StoreIdentifier != nil {
+			q.Set("storeIdentifier", *p.StoreIdentifier)
+		}
+		if p.IsReturned != nil {
+			q.Set("isReturned", btoa(*p.IsReturned))
+		}
+	}
+	// The API may return either an envelope with pagination or a plain array.
+	var items []Shipment
+	if err := c.do(ctx, "GET", "/shipments", q, nil, &items); err != nil {
+		return nil, err
+	}
+	return &ListShipmentsResponse{Data: items}, nil
 }
 
 func (c *Client) UpdatePackage(ctx context.Context, shipmentID string, body map[string]any) (*Shipment, error) {
@@ -196,11 +222,14 @@ func (c *Client) WaitForTrackingNumber(ctx context.Context, shipmentID string, i
 	}
 }
 
-// CreateReturnShipment creates a return for given shipment ID (PATCH with isReturn=true).
+// CreateReturnShipment creates a return for given shipment ID (POST with isReturn=true).
 func (c *Client) CreateReturnShipment(ctx context.Context, shipmentID string, body ReturnShipmentRequest) (*Shipment, error) {
 	body.IsReturn = true
+	if body.Count <= 0 {
+		body.Count = 1
+	}
 	var out Shipment
-	if err := c.do(ctx, "PATCH", "/shipments/"+url.PathEscape(shipmentID), nil, body, &out); err != nil {
+	if err := c.do(ctx, "POST", "/shipments/"+url.PathEscape(shipmentID), nil, body, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -209,6 +238,9 @@ func (c *Client) CreateReturnShipment(ctx context.Context, shipmentID string, bo
 // Label downloads
 func (c *Client) DownloadURL(ctx context.Context, url string) ([]byte, error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if c.UserAgent != "" {
+		req.Header.Set("User-Agent", c.UserAgent)
+	}
 	res, err := c.HTTP.Do(req)
 	if err != nil {
 		return nil, err

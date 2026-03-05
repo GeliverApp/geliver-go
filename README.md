@@ -136,7 +136,6 @@ provider := "SURAT_STANDART"
 retReq := g.ReturnShipmentRequest{
     WillAccept:         true,
     ProviderServiceCode: &provider,
-    Count:              1,
 }
 ret, _ := c.CreateReturnShipment(ctx, s.ID, retReq)
 _ = ret
@@ -144,8 +143,10 @@ _ = ret
 
 Not:
 
+- `WillAccept` alanı opsiyoneldir (varsayılan `false`). `true` ise backend iade için uygun teklifi otomatik kabul eder (etiket satın alma). `false` ise sadece iade shipment’i oluşturur; etiketi daha sonra teklif kabul ederek alabilirsiniz.
 - `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
 - `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
+- `Count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
 
 ## Webhooklar
 
