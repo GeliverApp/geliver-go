@@ -1,139 +1,156 @@
 package geliver
 
 import (
-    "bytes"
-    "context"
-    "encoding/json"
-    "fmt"
-    "io"
-    "net/http"
-    "net/url"
-    "strings"
-    "time"
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 const DefaultBaseURL = "https://api.geliver.io/api/v1"
 
 type Client struct {
-    BaseURL    string
-    Token      string
-    HTTP       *http.Client
-    MaxRetries int
+	BaseURL    string
+	Token      string
+	UserAgent  string
+	HTTP       *http.Client
+	MaxRetries int
 }
 
 type envelope[T any] struct {
-    Result           *bool  `json:"result,omitempty"`
-    Message          string `json:"message,omitempty"`
-    AdditionalMessage string `json:"additionalMessage,omitempty"`
-    Limit            *int   `json:"limit,omitempty"`
-    Page             *int   `json:"page,omitempty"`
-    TotalRows        *int   `json:"totalRows,omitempty"`
-    TotalPages       *int   `json:"totalPages,omitempty"`
-    Data             T      `json:"data"`
+	Result            *bool  `json:"result,omitempty"`
+	Message           string `json:"message,omitempty"`
+	AdditionalMessage string `json:"additionalMessage,omitempty"`
+	Limit             *int   `json:"limit,omitempty"`
+	Page              *int   `json:"page,omitempty"`
+	TotalRows         *int   `json:"totalRows,omitempty"`
+	TotalPages        *int   `json:"totalPages,omitempty"`
+	Data              T      `json:"data"`
 }
 
 type APIError struct {
-    Status int
-    Code   string
-    Message string
-    AdditionalMessage string
-    Body   any
+	Status            int
+	Code              string
+	Message           string
+	AdditionalMessage string
+	Body              any
 }
 
 func (e *APIError) Error() string {
-    parts := []string{"geliver: api error"}
-    if e.Status != 0 {
-        parts = append(parts, fmt.Sprintf("status=%d", e.Status))
-    }
-    if e.Code != "" {
-        parts = append(parts, "code="+e.Code)
-    }
-    if e.Message != "" {
-        parts = append(parts, "message="+e.Message)
-    }
-    if e.AdditionalMessage != "" {
-        parts = append(parts, "additional="+e.AdditionalMessage)
-    }
-    return strings.Join(parts, " ")
+	parts := []string{"geliver: api error"}
+	if e.Status != 0 {
+		parts = append(parts, fmt.Sprintf("status=%d", e.Status))
+	}
+	if e.Code != "" {
+		parts = append(parts, "code="+e.Code)
+	}
+	if e.Message != "" {
+		parts = append(parts, "message="+e.Message)
+	}
+	if e.AdditionalMessage != "" {
+		parts = append(parts, "additional="+e.AdditionalMessage)
+	}
+	return strings.Join(parts, " ")
 }
 
 func NewClient(token string) *Client {
-    return &Client{
-        BaseURL:    DefaultBaseURL,
-        Token:      token,
-        HTTP:       &http.Client{Timeout: 30 * time.Second},
-        MaxRetries: 2,
-    }
+	return &Client{
+		BaseURL:    DefaultBaseURL,
+		Token:      token,
+		UserAgent:  DefaultUserAgent,
+		HTTP:       &http.Client{Timeout: 30 * time.Second},
+		MaxRetries: 2,
+	}
 }
 
 func (c *Client) do(ctx context.Context, method, path string, q url.Values, body any, out any) error {
-    base := strings.TrimRight(c.BaseURL, "/")
-    u, _ := url.Parse(base + path)
-    if q != nil {
-        u.RawQuery = q.Encode()
-    }
-    var rdr io.Reader
-    if body != nil {
-        b, _ := json.Marshal(body)
-        rdr = bytes.NewReader(b)
-    }
-    req, _ := http.NewRequestWithContext(ctx, method, u.String(), rdr)
-    req.Header.Set("Authorization", "Bearer "+c.Token)
-    req.Header.Set("Content-Type", "application/json")
+	base := strings.TrimRight(c.BaseURL, "/")
+	u, _ := url.Parse(base + path)
+	if q != nil {
+		u.RawQuery = q.Encode()
+	}
+	var rdr io.Reader
+	if body != nil {
+		b, _ := json.Marshal(body)
+		rdr = bytes.NewReader(b)
+	}
+	req, _ := http.NewRequestWithContext(ctx, method, u.String(), rdr)
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	req.Header.Set("Content-Type", "application/json")
+	if c.UserAgent != "" {
+		req.Header.Set("User-Agent", c.UserAgent)
+	}
 
-    attempt := 0
-    for {
-        res, err := c.HTTP.Do(req)
-        if err != nil {
-            if attempt >= c.MaxRetries { return err }
-            attempt++
-            backoff(attempt)
-            continue
-        }
-        defer res.Body.Close()
-        b, _ := io.ReadAll(res.Body)
-        if res.StatusCode >= 400 {
-            var parsed map[string]any
-            _ = json.Unmarshal(b, &parsed)
-            apiErr := &APIError{Status: res.StatusCode}
-            if code, _ := parsed["code"].(string); code != "" { apiErr.Code = code }
-            if msg, _ := parsed["message"].(string); msg != "" { apiErr.Message = msg }
-            if addl, _ := parsed["additionalMessage"].(string); addl != "" { apiErr.AdditionalMessage = addl }
-            apiErr.Body = parsed
-            if shouldRetry(res.StatusCode) && attempt < c.MaxRetries {
-                attempt++
-                backoff(attempt)
-                continue
-            }
-            return apiErr
-        }
-        if out == nil { return nil }
-        // Check for envelope and error result
-        var root map[string]json.RawMessage
-        if err := json.Unmarshal(b, &root); err == nil {
-            // detect result=false
-            if v, ok := root["result"]; ok {
-                var r bool
-                if err := json.Unmarshal(v, &r); err == nil && !r {
-                    var code, msg, addl string
-                    _ = json.Unmarshal(root["code"], &code)
-                    _ = json.Unmarshal(root["message"], &msg)
-                    _ = json.Unmarshal(root["additionalMessage"], &addl)
-                    return &APIError{Status: res.StatusCode, Code: code, Message: msg, AdditionalMessage: addl, Body: root}
-                }
-            }
-            if data, ok := root["data"]; ok && data != nil {
-                return json.Unmarshal(data, out)
-            }
-        }
-        return json.Unmarshal(b, out)
-    }
+	attempt := 0
+	for {
+		res, err := c.HTTP.Do(req)
+		if err != nil {
+			if attempt >= c.MaxRetries {
+				return err
+			}
+			attempt++
+			backoff(attempt)
+			continue
+		}
+		defer res.Body.Close()
+		b, _ := io.ReadAll(res.Body)
+		if res.StatusCode >= 400 {
+			var parsed map[string]any
+			_ = json.Unmarshal(b, &parsed)
+			apiErr := &APIError{Status: res.StatusCode}
+			if code, _ := parsed["code"].(string); code != "" {
+				apiErr.Code = code
+			}
+			if msg, _ := parsed["message"].(string); msg != "" {
+				apiErr.Message = msg
+			}
+			if addl, _ := parsed["additionalMessage"].(string); addl != "" {
+				apiErr.AdditionalMessage = addl
+			}
+			apiErr.Body = parsed
+			if shouldRetry(res.StatusCode) && attempt < c.MaxRetries {
+				attempt++
+				backoff(attempt)
+				continue
+			}
+			return apiErr
+		}
+		if out == nil {
+			return nil
+		}
+		// Check for envelope and error result
+		var root map[string]json.RawMessage
+		if err := json.Unmarshal(b, &root); err == nil {
+			// detect result=false
+			if v, ok := root["result"]; ok {
+				var r bool
+				if err := json.Unmarshal(v, &r); err == nil && !r {
+					var code, msg, addl string
+					_ = json.Unmarshal(root["code"], &code)
+					_ = json.Unmarshal(root["message"], &msg)
+					_ = json.Unmarshal(root["additionalMessage"], &addl)
+					return &APIError{Status: res.StatusCode, Code: code, Message: msg, AdditionalMessage: addl, Body: root}
+				}
+			}
+			if data, ok := root["data"]; ok && data != nil {
+				return json.Unmarshal(data, out)
+			}
+		}
+		return json.Unmarshal(b, out)
+	}
 }
 
 func shouldRetry(status int) bool { return status == 429 || status >= 500 }
 
 func backoff(attempt int) {
-    base := time.Duration(200*(1<<(attempt-1))) * time.Millisecond
-    if base > 2*time.Second { base = 2 * time.Second }
-    time.Sleep(base)
+	base := time.Duration(200*(1<<(attempt-1))) * time.Millisecond
+	if base > 2*time.Second {
+		base = 2 * time.Second
+	}
+	time.Sleep(base)
 }
