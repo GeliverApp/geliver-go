@@ -222,9 +222,14 @@ func (c *Client) WaitForTrackingNumber(ctx context.Context, shipmentID string, i
 	}
 }
 
-// CreateReturnShipment creates a return for given shipment ID (POST with isReturn=true).
+// CreateReturnShipment creates a return shipment without purchasing the label yet.
+// Use CreateReturnTransaction to create the return and purchase the label immediately.
 func (c *Client) CreateReturnShipment(ctx context.Context, shipmentID string, body ReturnShipmentRequest) (*Shipment, error) {
+	if body.WillAccept {
+		return nil, errors.New("CreateReturnShipment does not support WillAccept=true; use CreateReturnTransaction")
+	}
 	body.IsReturn = true
+	body.WillAccept = false
 	if body.Count <= 0 {
 		body.Count = 1
 	}

@@ -79,3 +79,47 @@ func TestCreateTransactionWrapsShipment(t *testing.T) {
 		t.Fatalf("unexpected tx: %+v", tx)
 	}
 }
+
+func TestCreateReturnTransaction_UsesShipmentEndpointAndForcesWillAccept(t *testing.T) {
+	c := NewClient("test")
+	c.BaseURL = "https://example.test"
+	c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Method != "POST" || r.URL.Path != "/shipments/shp-1" {
+			t.Fatalf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body["isReturn"] != true {
+			t.Fatalf("expected isReturn=true, got %v", body["isReturn"])
+		}
+		if body["willAccept"] != true {
+			t.Fatalf("expected willAccept=true, got %v", body["willAccept"])
+		}
+		if body["count"] != float64(1) {
+			t.Fatalf("expected count=1, got %v", body["count"])
+		}
+		if body["providerServiceCode"] != "SURAT_STANDART" {
+			t.Fatalf("unexpected providerServiceCode: %v", body["providerServiceCode"])
+		}
+
+		return jsonResp(200, map[string]any{
+			"result": true,
+			"data":   map[string]any{"id": "tx-1", "offerID": "offer-1", "transactionType": "CREATE_SHIPMENT"},
+		}), nil
+	})}
+
+	tx, err := c.CreateReturnTransaction(context.Background(), "shp-1", ReturnShipmentRequest{
+		ProviderServiceCode: ptr("SURAT_STANDART"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tx == nil || tx.ID != "tx-1" {
+		t.Fatalf("unexpected tx: %+v", tx)
+	}
+}
+
+func ptr(v string) *string { return &v }

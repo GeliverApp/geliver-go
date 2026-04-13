@@ -6,6 +6,7 @@ Geliver Go SDK — Geliver Kargo Pazaryeri (Shipping Marketplace) API için resm
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
 
 • Dokümantasyon (TR/EN): https://docs.geliver.io
+• Değişiklik geçmişi: `CHANGELOG.md`
 
 ---
 
@@ -41,7 +42,7 @@ import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 5. Barkod, takip numarası ve etiket URL’leri Transaction içindeki Shipment’tan alın.
 6. Test ortamında her `GET /shipments` isteği kargo durumunu bir adım ilerletir; prod’da webhookları kurun.
 7. Etiketleri indirin (teklif kabulünden sonra Transaction içindeki URL'lerden indirin).
-8. İade gerekiyorsa `CreateReturnShipment` fonksiyonunu kullanın.
+8. İadeyi oluşturup etiketi henüz satın almamak için `CreateReturnShipment`; iadeyi oluşturup etiketi hemen satın almak için `CreateReturnTransaction` kullanın.
 
 ## Hızlı Başlangıç
 
@@ -134,19 +135,33 @@ func example(ctx context.Context) error {
 ```go
 provider := "SURAT_STANDART"
 retReq := g.ReturnShipmentRequest{
-    WillAccept:         true,
     ProviderServiceCode: &provider,
 }
 ret, _ := c.CreateReturnShipment(ctx, s.ID, retReq)
-_ = ret
+fmt.Println(ret.ID)
 ```
 
 Not:
 
-- `WillAccept` alanı opsiyoneldir (varsayılan `false`). `true` ise backend iade için uygun teklifi otomatik kabul eder (etiket satın alma). `false` ise sadece iade shipment’i oluşturur; etiketi daha sonra teklif kabul ederek alabilirsiniz.
+- `CreateReturnShipment(...)` iadeyi oluşturur, etiketi satın almaz ve `Shipment` döner.
+- Etiketi daha sonra satın almak isterseniz, teklif hazır olduğunda normal satın alma akışını `AcceptOffer(...)` ile kullanabilirsiniz.
 - `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
 - `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
 - `Count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
+
+İadeyi oluşturup etiketi hemen satın almak için:
+
+```go
+provider := "SURAT_STANDART"
+txReq := g.ReturnShipmentRequest{
+    ProviderServiceCode: &provider,
+}
+tx, _ := c.CreateReturnTransaction(ctx, s.ID, txReq)
+fmt.Println(tx.ID) // transaction id
+fmt.Println(tx.Shipment.ID) // return shipment id, API döndürüyorsa
+```
+
+- `CreateReturnTransaction(...)` iadeyi oluşturur, etiketi hemen satın alır ve `Transaction` döner.
 
 ## Webhooklar
 
@@ -212,11 +227,15 @@ _ = s2
 
 - Full flow: `examples/fullflow` (go/examples/fullflow/main.go)
 - Operasyonel akışlar (Listele/Getir/Güncelle/Klonla/İptal): `examples/ops` (go/examples/ops/main.go)
+- İade oluştur, etiketi sonra satın al: `examples/returnshipment` (go/examples/returnshipment/main.go)
+- İade oluştur, etiketi hemen satın al: `examples/returntransaction` (go/examples/returntransaction/main.go)
 - Tek aşamada gönderi (Create Transaction): `examples/onestep` (go/examples/onestep/main.go)
 - Kapıda ödeme: `examples/pod` (go/examples/pod/main.go)
 - Kendi anlaşmanızla etiket satın alma: `examples/ownagreement` (go/examples/ownagreement/main.go)
 - Minimal webhook handler: `examples/webhook_server`
 - Modeller: `pkg/geliver/models.go` (OpenAPI’den üretilmiştir)
+
+İade örnekleri mevcut ve iade edilebilir bir shipment ID bekler. ID'yi `GELIVER_RETURN_SHIPMENT_ID` ile veya ilk komut satırı argümanı olarak verebilirsiniz.
 
 ## Coğrafi, Sağlayıcı, Şablonlar
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 )
 
 // AcceptOffer purchases a label using offerID and returns a typed Transaction.
@@ -11,6 +12,20 @@ func (c *Client) AcceptOffer(ctx context.Context, offerID string) (*Transaction,
 	body := map[string]any{"offerID": offerID}
 	var out Transaction
 	if err := c.do(ctx, "POST", "/transactions", nil, body, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreateReturnTransaction creates a return shipment and purchases the label immediately.
+func (c *Client) CreateReturnTransaction(ctx context.Context, shipmentID string, body ReturnShipmentRequest) (*Transaction, error) {
+	body.IsReturn = true
+	body.WillAccept = true
+	if body.Count <= 0 {
+		body.Count = 1
+	}
+	var out Transaction
+	if err := c.do(ctx, "POST", "/shipments/"+url.PathEscape(shipmentID), nil, body, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil

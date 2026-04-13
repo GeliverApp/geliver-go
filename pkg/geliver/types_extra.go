@@ -71,6 +71,7 @@ type Transaction struct {
     DiscountRate       string    `json:"discountRate,omitempty"`
     BonusBalance       string    `json:"bonusBalance,omitempty"`
     OfferID            string    `json:"offerID,omitempty"`
+    ShipmentID         string    `json:"shipmentID,omitempty"`
     Shipment           *Shipment `json:"shipment,omitempty"`
     Description        string    `json:"description,omitempty"`
     IsRefund           bool      `json:"isRefund,omitempty"`
@@ -93,4 +94,3 @@ type OrganizationBalance struct {
     Data              string `json:"data,omitempty"`
     Debt              string `json:"debt,omitempty"`
 }
-

@@ -65,6 +65,7 @@ type OrderRequest struct {
 // unless overridden here.
 type ReturnShipmentRequest struct {
 	IsReturn            bool     `json:"isReturn"`
+	// Deprecated: use CreateReturnTransaction to create the return and purchase the label immediately.
 	WillAccept          bool     `json:"willAccept"`
 	ProviderServiceCode *string  `json:"providerServiceCode,omitempty"`
 	Count               int      `json:"count"`

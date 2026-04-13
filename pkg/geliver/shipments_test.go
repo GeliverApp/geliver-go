@@ -128,4 +128,11 @@ func TestCreateReturnShipment_UsesPostAndDefaults(t *testing.T) {
 	}
 }
 
+func TestCreateReturnShipment_WithWillAccept_ReturnsError(t *testing.T) {
+	c := NewClient("test")
+	if _, err := c.CreateReturnShipment(context.Background(), "shp-1", ReturnShipmentRequest{WillAccept: true}); err == nil {
+		t.Fatal("expected error when WillAccept=true")
+	}
+}
+
 func ptrInt(v int) *int { return &v }
