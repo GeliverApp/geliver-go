@@ -376,8 +376,8 @@ _ = trx2
 
 ### Gönderi Listeleme, Getir, Güncelle, İptal, Klonla
 
-- Listeleme (docs): https://docs.geliver.io/docs/shipments_and_transaction/list_shipments
-- Gönderi getir (docs): https://docs.geliver.io/docs/shipments_and_transaction/list_shipments
+- Listeleme (docs): https://docs.geliver.io/docs/shipments_and_transaction/get_all_shipments
+- Gönderi getir (docs): https://docs.geliver.io/docs/shipments_and_transaction/get_shipment
 - Paket güncelle (docs): https://docs.geliver.io/docs/shipments_and_transaction/update_package_shipment
 - Gönderi iptal (docs): https://docs.geliver.io/docs/shipments_and_transaction/cancel_shipment
 - Gönderi klonla (docs): https://docs.geliver.io/docs/shipments_and_transaction/clone_shipment
@@ -412,6 +412,11 @@ _, _ = c.CancelShipment(ctx, sh.ID)
 clone, _ := c.CloneShipment(ctx, sh.ID)
 _ = clone
 ```
+
+Listeleme filtreleri:
+- `limit`, `page`, `sortBy`, `filter`, `startDate`, `endDate`, `statusFilter`, `invoiceID`, `merchantCode`, `orderNumber`, `providerServiceCode`, `storeIdentifier`, `isReturned`
+- `startDate` ve `endDate` ISO 8601 formatında gönderilir
+- `statusFilter` değerleri: `CREATED`, `GOT_OFFERS`, `OFFER_ACCEPTED`, `TRACKING_CODE_CREATED`, `LABEL_PRINTED`, `SHIPPED`, `DELIVERED`, `CANCELED`, `RETURNED`, `RETURN_SHIPPED`, `FAILED`
 
 Örnek: go/examples/ops/main.go
 
