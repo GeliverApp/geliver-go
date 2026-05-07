@@ -413,8 +413,9 @@ clone, _ := c.CloneShipment(ctx, sh.ID)
 _ = clone
 ```
 
-Listeleme filtreleri:
-- `limit`, `page`, `sortBy`, `filter`, `startDate`, `endDate`, `statusFilter`, `invoiceID`, `merchantCode`, `orderNumber`, `providerServiceCode`, `storeIdentifier`, `isReturned`
+Listeleme parametreleri:
+- Temel filtreler: `limit`, `page`, `sortBy`, `filter`, `startDate`, `endDate`, `statusFilter`
+- Ek filtreler: `invoiceID`, `merchantCode`, `orderNumber`, `providerServiceCode`, `storeIdentifier`, `isReturned`
 - `startDate` ve `endDate` ISO 8601 formatında gönderilir
 - `statusFilter` değerleri: `CREATED`, `GOT_OFFERS`, `OFFER_ACCEPTED`, `TRACKING_CODE_CREATED`, `LABEL_PRINTED`, `SHIPPED`, `DELIVERED`, `CANCELED`, `RETURNED`, `RETURN_SHIPPED`, `FAILED`
 
