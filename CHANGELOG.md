@@ -13,7 +13,7 @@ This file documents notable changes in the SDK.
 
 ### 1.2.0
 
-- `CreateShipmentTyped(...)` ile `IsReturn`, satır içi `SenderAddress` ve `RecipientAddressID` kullanılarak bağımsız iade gönderisi oluşturulabilir.
+- `CreateShipmentTyped(...)` ile `IsReturn` ve gönderici/alıcı için bağımsız ID veya satır içi adres seçimi kullanılarak iade gönderisi oluşturulabilir.
 - `examples/incomingshipment` eklendi.
 
 ### 1.1.0
@@ -35,7 +35,7 @@ This file documents notable changes in the SDK.
 
 ### 1.2.0
 
-- `CreateShipmentTyped(...)` supports independent returns with `IsReturn`, an inline `SenderAddress`, and `RecipientAddressID`.
+- `CreateShipmentTyped(...)` supports independent returns with `IsReturn` and either an address ID or an inline address for each side.
 - Added `examples/incomingshipment`.
 
 ### 1.1.0

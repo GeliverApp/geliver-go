@@ -132,7 +132,7 @@ func example(ctx context.Context) error {
 
 ## Referans gönderi olmadan kargo bana gelecek
 
-Yeni gönderi için `CreateShipmentWithRecipientID` isteğinde `IsReturn: true` kullanın. `SenderAddress` müşterinin çıkış adresi, `RecipientAddressID` sizin kayıtlı alıcı adresinizdir. `IsReturn` adresleri otomatik değiştirmez. Örnek test gönderisi oluşturur.
+Yeni gönderi için `IsReturn: &isReturn` kullanın. Gönderici için `SenderAddressID` veya satır içi `SenderAddress`; alıcı için `RecipientAddressID` veya satır içi `RecipientAddress` kullanabilirsiniz. Dört kombinasyon da desteklenir; her taraf için yalnızca bir adres seçin. Alıcı ID'si için `CreateShipmentWithRecipientID`, satır içi alıcı için `CreateShipmentWithRecipientAddress` kullanın. `IsReturn` adresleri otomatik değiştirmez. Aşağıdaki örnekte müşteri adresi satır içi, sizin adresiniz kayıtlıdır. Örnek test gönderisi oluşturur.
 
 ```go
 isReturn, isTest := true, true

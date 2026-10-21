@@ -86,6 +86,57 @@ func TestCreateIncomingShipmentKeepsAddressDirection(t *testing.T) {
 	}
 }
 
+func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
+	isReturn := true
+	sender := Address{Name: "Customer", Phone: "+905051234567", Address1: "A"}
+	recipient := Address{Name: "Merchant", Phone: "+905051234568", Address1: "B"}
+	cases := []struct {
+		name         string
+		body         any
+		senderKey    string
+		recipientKey string
+	}{
+		{"id-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "customer-1"}, RecipientAddressID: "merchant-1"}, "senderAddressID", "recipientAddressID"},
+		{"id-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "customer-1"}, RecipientAddress: recipient}, "senderAddressID", "recipientAddress"},
+		{"inline-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddressID: "merchant-1"}, "senderAddress", "recipientAddressID"},
+		{"inline-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddress: recipient}, "senderAddress", "recipientAddress"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := NewClient("test")
+			c.BaseURL = "https://example.test"
+			c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+				var body map[string]any
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Fatal(err)
+				}
+				if r.Method != "POST" || r.URL.Path != "/shipments" || body["isReturn"] != true {
+					t.Fatalf("unexpected request: %s %s %v", r.Method, r.URL.Path, body)
+				}
+				if _, ok := body[tc.senderKey]; !ok {
+					t.Fatalf("missing sender selection: %v", body)
+				}
+				if _, ok := body[tc.recipientKey]; !ok {
+					t.Fatalf("missing recipient selection: %v", body)
+				}
+				for _, key := range []string{"senderAddressID", "senderAddress", "recipientAddressID", "recipientAddress"} {
+					if key != tc.senderKey && key != tc.recipientKey {
+						if _, ok := body[key]; ok {
+							t.Fatalf("unexpected address field %s: %v", key, body)
+						}
+					}
+				}
+				return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "incoming-1"}}), nil
+			})}
+			shipment, err := c.CreateShipmentTyped(context.Background(), tc.body)
+			if err != nil || shipment.ID != "incoming-1" {
+				t.Fatalf("unexpected shipment: %v, %v", shipment, err)
+			}
+		})
+	}
+}
+
 func TestAcceptOffer(t *testing.T) {
 	c := NewClient("test")
 	c.BaseURL = "https://example.test"
