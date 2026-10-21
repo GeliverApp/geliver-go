@@ -25,8 +25,8 @@ func main() {
 			IsReturn: &isReturn,
 			Test:     &isTest,
 			SenderAddress: &geliver.Address{
-				Name: "Müşteri Adı", Phone: "+905051234567",
-				Address1: "Örnek Mahallesi 1", CountryCode: "TR", CityCode: "34", DistrictName: "Kadıköy",
+				Name: "Müşteri Adı", Email: "customer@example.com", Phone: "+905051234567",
+				Address1: "Örnek Mahallesi 1", CountryCode: "TR", CityCode: "34", DistrictName: "Kadıköy", Zip: "34000",
 			},
 			Length: &length, Width: &width, Height: &height, DistanceUnit: &distanceUnit,
 			Weight: &weight, MassUnit: &massUnit,
