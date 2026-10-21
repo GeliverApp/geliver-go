@@ -17,7 +17,7 @@ func validateShipmentAddresses(body map[string]any) error {
 		id, _ := body[side+"AddressID"].(string)
 		hasID := strings.TrimSpace(id) != ""
 		hasAddress := body[side+"Address"] != nil
-		if hasID == hasAddress {
+		if (side == "recipient" && hasID == hasAddress) || (side == "sender" && hasID && hasAddress) {
 			return fmt.Errorf("provide exactly one of %sAddressID or %sAddress", side, side)
 		}
 	}

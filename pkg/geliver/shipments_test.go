@@ -62,24 +62,27 @@ func TestCreateIncomingShipmentKeepsAddressDirection(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Fatal(err)
 		}
-		if body["isReturn"] != true || body["recipientAddressID"] != "merchant-1" {
+		if body["isReturn"] != true {
 			t.Fatalf("unexpected body: %v", body)
 		}
-		sender, ok := body["senderAddress"].(map[string]any)
-		if !ok || sender["name"] != "Customer" {
-			t.Fatalf("unexpected sender address: %v", body["senderAddress"])
+		recipient, ok := body["recipientAddress"].(map[string]any)
+		if !ok || recipient["name"] != "Customer" {
+			t.Fatalf("unexpected recipient address: %v", body["recipientAddress"])
 		}
 		if _, exists := body["senderAddressID"]; exists {
 			t.Fatalf("unexpected senderAddressID: %v", body["senderAddressID"])
 		}
+		if _, exists := body["senderAddress"]; exists {
+			t.Fatalf("unexpected senderAddress: %v", body["senderAddress"])
+		}
 		return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "incoming-1"}}), nil
 	})}
 	isReturn := true
-	shipment, err := c.CreateShipmentWithRecipientID(context.Background(), CreateShipmentWithRecipientID{
+	shipment, err := c.CreateShipmentWithRecipientAddress(context.Background(), CreateShipmentWithRecipientAddress{
 		CreateShipmentRequestBase: CreateShipmentRequestBase{
-			IsReturn: &isReturn, SenderAddress: &Address{Name: "Customer", Phone: "+905051234567", Address1: "A"},
+			IsReturn: &isReturn,
 		},
-		RecipientAddressID: "merchant-1",
+		RecipientAddress: Address{Name: "Customer", Phone: "+905051234567", Address1: "A"},
 	})
 	if err != nil || shipment.ID != "incoming-1" {
 		t.Fatalf("unexpected shipment: %v, %v", shipment, err)
@@ -88,17 +91,18 @@ func TestCreateIncomingShipmentKeepsAddressDirection(t *testing.T) {
 
 func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
 	isReturn := true
-	sender := Address{Name: "Customer", Phone: "+905051234567", Address1: "A"}
-	recipient := Address{Name: "Merchant", Phone: "+905051234568", Address1: "B"}
+	sender := Address{Name: "Merchant", Phone: "+905051234567", Address1: "A"}
+	recipient := Address{Name: "Customer", Phone: "+905051234568", Address1: "B"}
 	cases := []struct {
 		name         string
 		body         any
 		senderKey    string
 		recipientKey string
 	}{
-		{"id-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "customer-1"}, RecipientAddressID: "merchant-1"}, "senderAddressID", "recipientAddressID"},
-		{"id-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "customer-1"}, RecipientAddress: recipient}, "senderAddressID", "recipientAddress"},
-		{"inline-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddressID: "merchant-1"}, "senderAddress", "recipientAddressID"},
+		{"default-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn}, RecipientAddress: recipient}, "", "recipientAddress"},
+		{"id-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "merchant-1"}, RecipientAddressID: "customer-1"}, "senderAddressID", "recipientAddressID"},
+		{"id-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "merchant-1"}, RecipientAddress: recipient}, "senderAddressID", "recipientAddress"},
+		{"inline-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddressID: "customer-1"}, "senderAddress", "recipientAddressID"},
 		{"inline-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddress: recipient}, "senderAddress", "recipientAddress"},
 	}
 
@@ -114,8 +118,10 @@ func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
 				if r.Method != "POST" || r.URL.Path != "/shipments" || body["isReturn"] != true {
 					t.Fatalf("unexpected request: %s %s %v", r.Method, r.URL.Path, body)
 				}
-				if _, ok := body[tc.senderKey]; !ok {
-					t.Fatalf("missing sender selection: %v", body)
+				if tc.senderKey != "" {
+					if _, ok := body[tc.senderKey]; !ok {
+						t.Fatalf("missing sender selection: %v", body)
+					}
 				}
 				if _, ok := body[tc.recipientKey]; !ok {
 					t.Fatalf("missing recipient selection: %v", body)
@@ -137,13 +143,12 @@ func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
 	}
 }
 
-func TestNewShipmentFlowsRequireOneAddressPerSide(t *testing.T) {
+func TestNewShipmentFlowsRequireRecipientAndAllowDefaultSender(t *testing.T) {
 	c := NewClient("test")
 	invalid := []map[string]any{
-		{"recipientAddressID": "merchant-1"},
-		{"senderAddressID": "customer-1", "senderAddress": map[string]any{"address1": "A"}, "recipientAddressID": "merchant-1"},
-		{"senderAddressID": "customer-1"},
-		{"senderAddressID": "customer-1", "recipientAddressID": "merchant-1", "recipientAddress": map[string]any{"address1": "B"}},
+		{"senderAddressID": "merchant-1", "senderAddress": map[string]any{"address1": "A"}, "recipientAddressID": "customer-1"},
+		{"senderAddressID": "merchant-1"},
+		{"senderAddressID": "merchant-1", "recipientAddressID": "customer-1", "recipientAddress": map[string]any{"address1": "B"}},
 	}
 	for _, body := range invalid {
 		if _, err := c.CreateShipment(context.Background(), body); err == nil {

@@ -46,7 +46,7 @@ import g "github.com/GeliverApp/geliver-go/pkg/geliver"
 
 ### Gönderi adresi seçimi
 
-Yeni gönderide gönderici için `SenderAddressID` veya satır içi `SenderAddress`; alıcı için `RecipientAddressID` veya satır içi `RecipientAddress` verin. Dört kombinasyon da desteklenir; her taraf için yalnızca bir adres seçin. Bu kural normal ve iade dahil tüm yeni gönderilerde ve tek adım etiket satın alma akışında geçerlidir. Alıcı ID'si için `CreateShipmentWithRecipientID`, satır içi alıcı için `CreateShipmentWithRecipientAddress` kullanın.
+Yeni gönderide alıcı için `RecipientAddressID` veya satır içi `RecipientAddress` alanlarından birini verin. Gönderici için `SenderAddressID` veya `SenderAddress` kullanabilirsiniz; ikisini de vermezseniz backend kurumun varsayılan gönderici adresini kullanır. Bu kural normal ve iade dahil tüm yeni gönderilerde ve tek adım etiket satın alma akışında geçerlidir. Alıcı ID'si için `CreateShipmentWithRecipientID`, satır içi alıcı için `CreateShipmentWithRecipientAddress` kullanın.
 
 ## Hızlı Başlangıç
 
@@ -136,24 +136,23 @@ func example(ctx context.Context) error {
 
 ## Referans gönderi olmadan kargo bana gelecek
 
-Yeni gönderi için `IsReturn: &isReturn` kullanın. `IsReturn` adresleri otomatik değiştirmez. Aşağıdaki örnekte müşteri adresi satır içi, sizin adresiniz kayıtlıdır. Örnek test gönderisi oluşturur.
+Yeni gönderi için `IsReturn: &isReturn` kullanın. İadede `RecipientAddress` müşterinin kargonun alınacağı adresidir; `SenderAddress` sizin teslim adresinizdir. Backend taşıyıcı için yönü ters çevirir. Aşağıdaki örnek sizin için varsayılan gönderici adresini kullanır ve test gönderisi oluşturur.
 
 ```go
 isReturn, isTest := true, true
-req := g.CreateShipmentWithRecipientID{
+req := g.CreateShipmentWithRecipientAddress{
     CreateShipmentRequestBase: g.CreateShipmentRequestBase{
         IsReturn: &isReturn, Test: &isTest,
-        SenderAddress: &g.Address{
-            Name: "Müşteri Adı", Email: "customer@example.com", Phone: "+905051234567",
-            Address1: "Örnek Mahallesi 1", CountryCode: "TR", CityCode: "34", DistrictName: "Kadıköy", Zip: "34000",
-        },
     },
-    RecipientAddressID: merchantAddressID,
+    RecipientAddress: g.Address{
+        Name: "Müşteri Adı", Email: "customer@example.com", Phone: "+905051234567",
+        Address1: "Örnek Mahallesi 1", CountryCode: "TR", CityCode: "34", DistrictName: "Kadıköy", Zip: "34000",
+    },
 }
-shipment, err := c.CreateShipmentWithRecipientID(ctx, req)
+shipment, err := c.CreateShipmentWithRecipientAddress(ctx, req)
 ```
 
-Paket ölçüleriyle birlikte çalıştırılabilir örnek: `GELIVER_TOKEN=... GELIVER_MERCHANT_ADDRESS_ID=... go run ./examples/incomingshipment`. Etiketi satın almak için teklif kabul akışını kullanın.
+Paket ölçüleriyle birlikte çalıştırılabilir örnek: `GELIVER_TOKEN=... go run ./examples/incomingshipment`. Etiketi satın almak için teklif kabul akışını kullanın.
 
 ## Var olan gönderiye bağlı iade oluşturun
 
