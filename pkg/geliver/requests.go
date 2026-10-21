@@ -17,7 +17,8 @@ type CreateAddressRequest struct {
 }
 
 type CreateShipmentRequestBase struct {
-    SenderAddressID     string  `json:"senderAddressID"`
+    SenderAddressID     string  `json:"senderAddressID,omitempty"`
+    SenderAddress       *Address `json:"senderAddress,omitempty"`
     Length              *string `json:"length,omitempty"`
     Width               *string `json:"width,omitempty"`
     Height              *string `json:"height,omitempty"`
@@ -29,6 +30,7 @@ type CreateShipmentRequestBase struct {
     // If true, enables payment on delivery (kapıda ödeme)
     ProductPaymentOnDelivery *bool   `json:"productPaymentOnDelivery,omitempty"`
     Test                *bool   `json:"test,omitempty"`
+    IsReturn            *bool   `json:"isReturn,omitempty"`
     Order               *OrderRequest `json:"order,omitempty"`
 }
 

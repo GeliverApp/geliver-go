@@ -130,7 +130,28 @@ func example(ctx context.Context) error {
 
 > Alternatif: Uygun olduğunda sunucuda kayıtlı `recipientAddressID` alanını kullanabilirsiniz.
 
-## İade Gönderisi Oluşturun
+## Referans gönderi olmadan kargo bana gelecek
+
+Yeni gönderi için `CreateShipmentWithRecipientID` isteğinde `IsReturn: true` kullanın. `SenderAddress` müşterinin çıkış adresi, `RecipientAddressID` sizin kayıtlı alıcı adresinizdir. `IsReturn` adresleri otomatik değiştirmez. Örnek test gönderisi oluşturur.
+
+```go
+isReturn, isTest := true, true
+req := g.CreateShipmentWithRecipientID{
+    CreateShipmentRequestBase: g.CreateShipmentRequestBase{
+        IsReturn: &isReturn, Test: &isTest,
+        SenderAddress: &g.Address{
+            Name: "Müşteri Adı", Phone: "+905051234567",
+            Address1: "Örnek Mahallesi 1", CountryCode: "TR", CityCode: "34", DistrictName: "Kadıköy",
+        },
+    },
+    RecipientAddressID: merchantAddressID,
+}
+shipment, err := c.CreateShipmentWithRecipientID(ctx, req)
+```
+
+Paket ölçüleriyle birlikte çalıştırılabilir örnek: `GELIVER_TOKEN=... GELIVER_MERCHANT_ADDRESS_ID=... go run ./examples/incomingshipment`. Etiketi satın almak için teklif kabul akışını kullanın.
+
+## Var olan gönderiye bağlı iade oluşturun
 
 ```go
 provider := "SURAT_STANDART"

@@ -51,6 +51,41 @@ func TestListShipments(t *testing.T) {
 	}
 }
 
+func TestCreateIncomingShipmentKeepsAddressDirection(t *testing.T) {
+	c := NewClient("test")
+	c.BaseURL = "https://example.test"
+	c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Method != "POST" || r.URL.Path != "/shipments" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body["isReturn"] != true || body["recipientAddressID"] != "merchant-1" {
+			t.Fatalf("unexpected body: %v", body)
+		}
+		sender, ok := body["senderAddress"].(map[string]any)
+		if !ok || sender["name"] != "Customer" {
+			t.Fatalf("unexpected sender address: %v", body["senderAddress"])
+		}
+		if _, exists := body["senderAddressID"]; exists {
+			t.Fatalf("unexpected senderAddressID: %v", body["senderAddressID"])
+		}
+		return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "incoming-1"}}), nil
+	})}
+	isReturn := true
+	shipment, err := c.CreateShipmentWithRecipientID(context.Background(), CreateShipmentWithRecipientID{
+		CreateShipmentRequestBase: CreateShipmentRequestBase{
+			IsReturn: &isReturn, SenderAddress: &Address{Name: "Customer", Phone: "+905051234567", Address1: "A"},
+		},
+		RecipientAddressID: "merchant-1",
+	})
+	if err != nil || shipment.ID != "incoming-1" {
+		t.Fatalf("unexpected shipment: %v, %v", shipment, err)
+	}
+}
+
 func TestAcceptOffer(t *testing.T) {
 	c := NewClient("test")
 	c.BaseURL = "https://example.test"
