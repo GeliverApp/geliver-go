@@ -157,10 +157,7 @@ Paket ölçüleriyle birlikte çalıştırılabilir örnek: `GELIVER_TOKEN=... g
 ## Var olan gönderiye bağlı iade oluşturun
 
 ```go
-provider := "SURAT_STANDART"
-retReq := g.ReturnShipmentRequest{
-    ProviderServiceCode: &provider,
-}
+retReq := g.ReturnShipmentRequest{}
 ret, _ := c.CreateReturnShipment(ctx, s.ID, retReq)
 fmt.Println(ret.ID)
 ```
@@ -169,8 +166,8 @@ Not:
 
 - `CreateReturnShipment(...)` iadeyi oluşturur, etiketi satın almaz ve `Shipment` döner.
 - Etiketi daha sonra satın almak isterseniz, teklif hazır olduğunda normal satın alma akışını `AcceptOffer(...)` ile kullanabilirsiniz.
-- `ProviderServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; dilerseniz bu alanı vererek değiştirebilirsiniz.
-- `SenderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı ayarlayabilirsiniz.
+- `ProviderServiceCode` yalnızca etiketi hemen satın alan iade akışında kullanılır; verilmezse orijinal gönderinin taşıyıcısı seçilir. Etiketi satın almadan iade oluştururken bu alan dikkate alınmaz.
+- İade müşteriden orijinal göndericiye gider. `SenderAddress` ile müşterinin kargonun alınacağı adresini değiştirebilirsiniz; verilmezse orijinal alıcı adresi kullanılır. Adresleri SDK tarafında ters çevirmeyin. Bu referanslı iade endpoint’i yalnızca inline `senderAddress` kabul eder; yeni gönderi oluşturmadaki `recipientAddress`, `recipientAddressID` ve `senderAddressID` seçenekleri burada geçerli değildir.
 - `Count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
 
 İadeyi oluşturup etiketi hemen satın almak için:

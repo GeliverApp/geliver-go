@@ -237,6 +237,44 @@ func TestCreateReturnShipment_UsesPostAndDefaults(t *testing.T) {
 	}
 }
 
+func TestReturnFlowsPreserveCustomerSenderAddress(t *testing.T) {
+	for _, purchase := range []bool{false, true} {
+		c := NewClient("test")
+		calls := 0
+		c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			calls++
+			if r.Method != "POST" || r.URL.Path != "/api/v1/shipments/original-1" {
+				t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+			}
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			customer, ok := body["senderAddress"].(map[string]any)
+			if !ok || customer["name"] != "Customer" || customer["address1"] != "Pickup address" {
+				t.Fatalf("customer senderAddress changed: %v", body)
+			}
+			if body["recipientAddress"] != nil || body["recipientAddressID"] != nil {
+				t.Fatalf("return address was swapped in the SDK: %v", body)
+			}
+			if body["isReturn"] != true || body["willAccept"] != purchase {
+				t.Fatalf("unexpected return flags: %v", body)
+			}
+			return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "return-1"}}), nil
+		})}
+		request := ReturnShipmentRequest{SenderAddress: &Address{Name: "Customer", Address1: "Pickup address"}}
+		var err error
+		if purchase {
+			_, err = c.CreateReturnTransaction(context.Background(), "original-1", request)
+		} else {
+			_, err = c.CreateReturnShipment(context.Background(), "original-1", request)
+		}
+		if err != nil || calls != 1 {
+			t.Fatalf("purchase=%t: calls=%d, err=%v", purchase, calls, err)
+		}
+	}
+}
+
 func TestCreateReturnShipment_WithWillAccept_ReturnsError(t *testing.T) {
 	c := NewClient("test")
 	if _, err := c.CreateReturnShipment(context.Background(), "shp-1", ReturnShipmentRequest{WillAccept: true}); err == nil {
