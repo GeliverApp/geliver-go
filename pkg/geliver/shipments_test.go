@@ -137,6 +137,24 @@ func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
 	}
 }
 
+func TestNewShipmentFlowsRequireOneAddressPerSide(t *testing.T) {
+	c := NewClient("test")
+	invalid := []map[string]any{
+		{"recipientAddressID": "merchant-1"},
+		{"senderAddressID": "customer-1", "senderAddress": map[string]any{"address1": "A"}, "recipientAddressID": "merchant-1"},
+		{"senderAddressID": "customer-1"},
+		{"senderAddressID": "customer-1", "recipientAddressID": "merchant-1", "recipientAddress": map[string]any{"address1": "B"}},
+	}
+	for _, body := range invalid {
+		if _, err := c.CreateShipment(context.Background(), body); err == nil {
+			t.Fatalf("CreateShipment accepted invalid addresses: %v", body)
+		}
+		if _, err := c.CreateTransaction(context.Background(), map[string]any{"shipment": body}); err == nil {
+			t.Fatalf("CreateTransaction accepted invalid addresses: %v", body)
+		}
+	}
+}
+
 func TestAcceptOffer(t *testing.T) {
 	c := NewClient("test")
 	c.BaseURL = "https://example.test"

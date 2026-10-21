@@ -8,8 +8,21 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
+
+func validateShipmentAddresses(body map[string]any) error {
+	for _, side := range []string{"sender", "recipient"} {
+		id, _ := body[side+"AddressID"].(string)
+		hasID := strings.TrimSpace(id) != ""
+		hasAddress := body[side+"Address"] != nil
+		if hasID == hasAddress {
+			return fmt.Errorf("provide exactly one of %sAddressID or %sAddress", side, side)
+		}
+	}
+	return nil
+}
 
 type ListShipmentsResponse struct {
 	Limit      *int       `json:"limit,omitempty"`
@@ -38,6 +51,9 @@ type ListParams struct {
 func (c *Client) CreateShipment(ctx context.Context, body map[string]any) (*Shipment, error) {
 	if body == nil {
 		body = map[string]any{}
+	}
+	if err := validateShipmentAddresses(body); err != nil {
+		return nil, err
 	}
 	if ord, ok := body["order"].(map[string]any); ok {
 		if _, ok2 := ord["sourceCode"]; !ok2 || ord["sourceCode"] == "" {
