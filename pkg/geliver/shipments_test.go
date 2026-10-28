@@ -51,6 +51,115 @@ func TestListShipments(t *testing.T) {
 	}
 }
 
+func TestCreateIncomingShipmentKeepsAddressDirection(t *testing.T) {
+	c := NewClient("test")
+	c.BaseURL = "https://example.test"
+	c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		if r.Method != "POST" || r.URL.Path != "/shipments" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if body["isReturn"] != true {
+			t.Fatalf("unexpected body: %v", body)
+		}
+		recipient, ok := body["recipientAddress"].(map[string]any)
+		if !ok || recipient["name"] != "Customer" {
+			t.Fatalf("unexpected recipient address: %v", body["recipientAddress"])
+		}
+		if _, exists := body["senderAddressID"]; exists {
+			t.Fatalf("unexpected senderAddressID: %v", body["senderAddressID"])
+		}
+		if _, exists := body["senderAddress"]; exists {
+			t.Fatalf("unexpected senderAddress: %v", body["senderAddress"])
+		}
+		return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "incoming-1"}}), nil
+	})}
+	isReturn := true
+	shipment, err := c.CreateShipmentWithRecipientAddress(context.Background(), CreateShipmentWithRecipientAddress{
+		CreateShipmentRequestBase: CreateShipmentRequestBase{
+			IsReturn: &isReturn,
+		},
+		RecipientAddress: Address{Name: "Customer", Phone: "+905051234567", Address1: "A"},
+	})
+	if err != nil || shipment.ID != "incoming-1" {
+		t.Fatalf("unexpected shipment: %v, %v", shipment, err)
+	}
+}
+
+func TestCreateIncomingShipmentAddressCombinations(t *testing.T) {
+	isReturn := true
+	sender := Address{Name: "Merchant", Phone: "+905051234567", Address1: "A"}
+	recipient := Address{Name: "Customer", Phone: "+905051234568", Address1: "B"}
+	cases := []struct {
+		name         string
+		body         any
+		senderKey    string
+		recipientKey string
+	}{
+		{"default-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn}, RecipientAddress: recipient}, "", "recipientAddress"},
+		{"id-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "merchant-1"}, RecipientAddressID: "customer-1"}, "senderAddressID", "recipientAddressID"},
+		{"id-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddressID: "merchant-1"}, RecipientAddress: recipient}, "senderAddressID", "recipientAddress"},
+		{"inline-id", CreateShipmentWithRecipientID{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddressID: "customer-1"}, "senderAddress", "recipientAddressID"},
+		{"inline-inline", CreateShipmentWithRecipientAddress{CreateShipmentRequestBase: CreateShipmentRequestBase{IsReturn: &isReturn, SenderAddress: &sender}, RecipientAddress: recipient}, "senderAddress", "recipientAddress"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := NewClient("test")
+			c.BaseURL = "https://example.test"
+			c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+				var body map[string]any
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Fatal(err)
+				}
+				if r.Method != "POST" || r.URL.Path != "/shipments" || body["isReturn"] != true {
+					t.Fatalf("unexpected request: %s %s %v", r.Method, r.URL.Path, body)
+				}
+				if tc.senderKey != "" {
+					if _, ok := body[tc.senderKey]; !ok {
+						t.Fatalf("missing sender selection: %v", body)
+					}
+				}
+				if _, ok := body[tc.recipientKey]; !ok {
+					t.Fatalf("missing recipient selection: %v", body)
+				}
+				for _, key := range []string{"senderAddressID", "senderAddress", "recipientAddressID", "recipientAddress"} {
+					if key != tc.senderKey && key != tc.recipientKey {
+						if _, ok := body[key]; ok {
+							t.Fatalf("unexpected address field %s: %v", key, body)
+						}
+					}
+				}
+				return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "incoming-1"}}), nil
+			})}
+			shipment, err := c.CreateShipmentTyped(context.Background(), tc.body)
+			if err != nil || shipment.ID != "incoming-1" {
+				t.Fatalf("unexpected shipment: %v, %v", shipment, err)
+			}
+		})
+	}
+}
+
+func TestNewShipmentFlowsRequireRecipientAndAllowDefaultSender(t *testing.T) {
+	c := NewClient("test")
+	invalid := []map[string]any{
+		{"senderAddressID": "merchant-1", "senderAddress": map[string]any{"address1": "A"}, "recipientAddressID": "customer-1"},
+		{"senderAddressID": "merchant-1"},
+		{"senderAddressID": "merchant-1", "recipientAddressID": "customer-1", "recipientAddress": map[string]any{"address1": "B"}},
+	}
+	for _, body := range invalid {
+		if _, err := c.CreateShipment(context.Background(), body); err == nil {
+			t.Fatalf("CreateShipment accepted invalid addresses: %v", body)
+		}
+		if _, err := c.CreateTransaction(context.Background(), map[string]any{"shipment": body}); err == nil {
+			t.Fatalf("CreateTransaction accepted invalid addresses: %v", body)
+		}
+	}
+}
+
 func TestAcceptOffer(t *testing.T) {
 	c := NewClient("test")
 	c.BaseURL = "https://example.test"
@@ -125,6 +234,44 @@ func TestCreateReturnShipment_UsesPostAndDefaults(t *testing.T) {
 	}
 	if ret.ID != "ret-1" {
 		t.Fatalf("unexpected id: %s", ret.ID)
+	}
+}
+
+func TestReturnFlowsPreserveCustomerSenderAddress(t *testing.T) {
+	for _, purchase := range []bool{false, true} {
+		c := NewClient("test")
+		calls := 0
+		c.HTTP = &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			calls++
+			if r.Method != "POST" || r.URL.Path != "/api/v1/shipments/original-1" {
+				t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+			}
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+			customer, ok := body["senderAddress"].(map[string]any)
+			if !ok || customer["name"] != "Customer" || customer["address1"] != "Pickup address" {
+				t.Fatalf("customer senderAddress changed: %v", body)
+			}
+			if body["recipientAddress"] != nil || body["recipientAddressID"] != nil {
+				t.Fatalf("return address was swapped in the SDK: %v", body)
+			}
+			if body["isReturn"] != true || body["willAccept"] != purchase {
+				t.Fatalf("unexpected return flags: %v", body)
+			}
+			return jsonResp(200, map[string]any{"result": true, "data": map[string]any{"id": "return-1"}}), nil
+		})}
+		request := ReturnShipmentRequest{SenderAddress: &Address{Name: "Customer", Address1: "Pickup address"}}
+		var err error
+		if purchase {
+			_, err = c.CreateReturnTransaction(context.Background(), "original-1", request)
+		} else {
+			_, err = c.CreateReturnShipment(context.Background(), "original-1", request)
+		}
+		if err != nil || calls != 1 {
+			t.Fatalf("purchase=%t: calls=%d, err=%v", purchase, calls, err)
+		}
 	}
 }
 

@@ -47,6 +47,9 @@ func (c *Client) CreateTransaction(ctx context.Context, body map[string]any) (*T
 			shipment[k] = v
 		}
 	}
+	if err := validateShipmentAddresses(shipment); err != nil {
+		return nil, err
+	}
 	// default order.sourceCode
 	if ov, ok := shipment["order"].(map[string]any); ok {
 		if ov["sourceCode"] == nil || ov["sourceCode"] == "" {
